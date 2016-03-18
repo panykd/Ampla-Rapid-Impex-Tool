@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RapidImpexConsole", "RapidI
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RapidImpex.Ampla", "RapidImpex.Ampla\RapidImpex.Ampla.csproj", "{777CEA1B-338D-43F3-BF1F-FFD92826FBFB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RapidImpex.Models", "RapidImpex.Models\RapidImpex.Models.csproj", "{61FC2568-EBB0-4E48-9054-A34463C84997}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{777CEA1B-338D-43F3-BF1F-FFD92826FBFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{777CEA1B-338D-43F3-BF1F-FFD92826FBFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{777CEA1B-338D-43F3-BF1F-FFD92826FBFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61FC2568-EBB0-4E48-9054-A34463C84997}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61FC2568-EBB0-4E48-9054-A34463C84997}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61FC2568-EBB0-4E48-9054-A34463C84997}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61FC2568-EBB0-4E48-9054-A34463C84997}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

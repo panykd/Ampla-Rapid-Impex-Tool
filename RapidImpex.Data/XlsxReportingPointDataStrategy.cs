@@ -1,23 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Autofac;
 using OfficeOpenXml;
 using RapidImpex.Models;
 
 namespace RapidImpex.Data
 {
-    public class DataModule : Module
-    {
-        protected override void Load(ContainerBuilder builder)
-        {
-        }
-    }
-
     public class XlsxReportingPointDataStrategy : IReportingPointDataReadWriteStrategy
     {
         const int dataStartRow = 10;
@@ -245,73 +234,5 @@ namespace RapidImpex.Data
                 package.Save();
             }
         }
-    }
-
-    public class ThreadLockedReportingPointDataReadWriteStrategyAdapter : IReportingPointDataReadWriteStrategy
-    {
-        private readonly IReportingPointDataReadWriteStrategy _instance;
-
-        readonly ReaderWriterLockSlim _locker = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
-
-        public ThreadLockedReportingPointDataReadWriteStrategyAdapter(IReportingPointDataReadWriteStrategy instance)
-        {
-            _instance = instance;
-        }
-
-        public IEnumerable<ReportingPointRecord> Read(string inputPath, ReportingPoint reportingPoint)
-        {
-            _locker.EnterReadLock();
-
-            var results = _instance.Read(inputPath, reportingPoint);
-
-            _locker.ExitReadLock();
-
-            return results;
-        }
-
-        public void Write(string outputPath, ReportingPoint reportingPoint, IEnumerable<ReportingPointRecord> records)
-        {
-            _locker.EnterWriteLock();
-
-            _instance.Write(outputPath, reportingPoint, records);
-
-            _locker.ExitWriteLock();
-        }
-    }
-
-    public class ByAssetXlsxMultiPartNamingStrategy : IMultiPartFileNamingStrategy
-    {
-        public void GetFileParts(ReportingPoint reportingPoint, out string fileName, out string partName)
-        {
-            var nameParts = reportingPoint.FullName.Split(new[] { "." }, StringSplitOptions.None);
-
-            var partsInFile = nameParts.Count() - 2;
-
-            fileName = string.Join(" ", nameParts.Take(partsInFile));
-            partName = string.Concat(nameParts.Skip(partsInFile)).Replace(" ", "");
-
-            // Xlsx tabs have a maximum length of 31 characters
-            partName = partName.Length > 31 ? partName.Substring(0, 31) : partName;
-        }
-    }
-
-    public interface IMultiPartFileNamingStrategy
-    {
-        void GetFileParts(ReportingPoint reportingPoint, out string fileName, out string partName);
-    }
-
-    public interface IReportingPointDataWriteStrategy
-    {
-        void Write(string outputPath, ReportingPoint reportingPoint, IEnumerable<ReportingPointRecord> records);
-    }
-
-    public interface IReportingPointDataReadStrategy
-    {
-        IEnumerable<ReportingPointRecord> Read(string inputPath, ReportingPoint reportingPoint);
-    }
-
-    public interface IReportingPointDataReadWriteStrategy : IReportingPointDataReadStrategy, IReportingPointDataWriteStrategy
-    {
-
     }
 }

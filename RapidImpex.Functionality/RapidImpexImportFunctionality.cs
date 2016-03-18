@@ -11,20 +11,31 @@ namespace RapidImpex.Functionality
 {
     public class RapidImpexImportFunctionality : RapidImpexImportFunctionalityBase
     {
-        public override void Execute()
+        private readonly IDataWebService _dataWebService;
+        private readonly AmplaQueryService _amplaQueryService;
+        private readonly IReportingPointDataReadWriteStrategy _readWriteStrategy;
+
+        public RapidImpexImportFunctionality(IDataWebService dataWebService, AmplaQueryService amplaQueryService, IReportingPointDataReadWriteStrategy readWriteStrategy)
         {
-            ImportChain(Config.WorkingDirectory);
+            _dataWebService = dataWebService;
+            _amplaQueryService = amplaQueryService;
+            _readWriteStrategy = readWriteStrategy;
         }
 
-        private static void ImportChain(string importPath)
+        public override void Execute()
         {
-            var reportingPointData = ImportData(importPath);
+            var reportingPointData = ImportData(Config.WorkingDirectory);
 
+            SubmitRecords(reportingPointData);
+
+            DeleteRecords(reportingPointData);
+
+            ConfirmRecords(reportingPointData);
+        }
+
+        private void SubmitRecords(Dictionary<ReportingPoint, IEnumerable<ReportingPointRecord>> reportingPointData)
+        {
             var submitDataRecords = new List<SubmitDataRecord>();
-
-            var confirmRecords = new List<UpdateRecordStatus>();
-
-            var deleteRecords = new List<DeleteRecord>();
 
             foreach (var rpd in reportingPointData)
             {
@@ -72,13 +83,12 @@ namespace RapidImpex.Functionality
 
                     var causeLocationField = fieldValues.FirstOrDefault(x => x.Name == "Cause Location");
 
-                    var amplaQueryService = new AmplaQueryService();
-
                     if (causeLocationField != null)
                     {
                         var causeLocation = causeLocationField.Value;
 
-                        var relationshipMatrix = new Lazy<RelationshipMatrix>(() => amplaQueryService.GetRelationshipMatrixFor(reportingPoint, causeLocation));
+                        var relationshipMatrix =
+                            new Lazy<RelationshipMatrix>(() => _amplaQueryService.GetRelationshipMatrixFor(reportingPoint, causeLocation));
 
                         var causeField = fieldValues.FirstOrDefault(x => x.Name == "Cause");
 
@@ -91,7 +101,8 @@ namespace RapidImpex.Functionality
 
                         if (classificationField != null && !string.IsNullOrWhiteSpace(classificationField.Value))
                         {
-                            classificationField.Value = relationshipMatrix.Value.GetCauseCode(classificationField.Value).ToString();
+                            classificationField.Value =
+                                relationshipMatrix.Value.GetCauseCode(classificationField.Value).ToString();
                         }
                     }
 
@@ -99,22 +110,31 @@ namespace RapidImpex.Functionality
 
                     // Handle Record Values
                     submitDataRecords.Add(submitDataRecord);
+                }
+            }
 
-                    // Handle Confirmed Records
-                    if (record.IsConfirmed)
-                    {
-                        confirmRecords.Add(new UpdateRecordStatus()
-                        {
-                            Location = location,
-                            Module = module,
-                            RecordAction = UpdateRecordStatusAction.Confirm,
-                            MergeCriteria = new UpdateRecordStatusMergeCriteria()
-                            {
-                                SetId = record.Id
-                            }
-                        });
-                    }
+            if (submitDataRecords.Any())
+            {
+                _dataWebService.SubmitData(new SubmitDataRequestMessage(new SubmitDataRequest()
+                {
+                    SubmitDataRecords = submitDataRecords.ToArray()
+                }));
+            }
+        }
 
+        private void DeleteRecords(Dictionary<ReportingPoint, IEnumerable<ReportingPointRecord>> reportingPointData)
+        {
+            var deleteRecords = new List<DeleteRecord>();
+
+            foreach (var rpd in reportingPointData)
+            {
+                var reportingPoint = rpd.Key;
+
+                var location = reportingPoint.FullName;
+                var module = reportingPoint.Module.AsAmplaModule();
+
+                foreach (var record in rpd.Value)
+                {
                     // Handle Deleted Records
                     if (record.IsDeleted)
                     {
@@ -132,28 +152,48 @@ namespace RapidImpex.Functionality
             }
 
             // Submit the records
-
-            IDataWebService client = new DataWebServiceClient("NetTcp");
-
-            if (submitDataRecords.Any())
-            {
-                client.SubmitData(new SubmitDataRequestMessage(new SubmitDataRequest()
-                {
-                    SubmitDataRecords = submitDataRecords.ToArray()
-                }));
-            }
-
             if (deleteRecords.Any())
             {
-                client.DeleteRecords(new DeleteRecordsRequestMessage(new DeleteRecordsRequest()
+                _dataWebService.DeleteRecords(new DeleteRecordsRequestMessage(new DeleteRecordsRequest()
                 {
                     DeleteRecords = deleteRecords.ToArray()
                 }));
             }
+        }
+
+        private void ConfirmRecords(Dictionary<ReportingPoint, IEnumerable<ReportingPointRecord>> reportingPointData)
+        {
+            var confirmRecords = new List<UpdateRecordStatus>();
+
+            foreach (var rpd in reportingPointData)
+            {
+                var reportingPoint = rpd.Key;
+
+                var location = reportingPoint.FullName;
+                var module = reportingPoint.Module.AsAmplaModule();
+
+                foreach (var record in rpd.Value)
+                {
+                    // Handle Confirmed Records
+                    if (record.IsConfirmed)
+                    {
+                        confirmRecords.Add(new UpdateRecordStatus()
+                        {
+                            Location = location,
+                            Module = module,
+                            RecordAction = UpdateRecordStatusAction.Confirm,
+                            MergeCriteria = new UpdateRecordStatusMergeCriteria()
+                            {
+                                SetId = record.Id
+                            }
+                        });
+                    }
+                }
+            }
 
             if (confirmRecords.Any())
             {
-                client.UpdateRecordStatus(new UpdateRecordStatusRequestMessage(new UpdateRecordStatusRequest()
+                _dataWebService.UpdateRecordStatus(new UpdateRecordStatusRequestMessage(new UpdateRecordStatusRequest()
                 {
                     UpdateRecords = confirmRecords.ToArray()
                 }));
@@ -192,21 +232,17 @@ namespace RapidImpex.Functionality
             return fieldName;
         }
 
-        private static Dictionary<ReportingPoint, IEnumerable<ReportingPointRecord>> ImportData(string importPath)
+        private Dictionary<ReportingPoint, IEnumerable<ReportingPointRecord>> ImportData(string importPath)
         {
-            var amplaQueryService = new AmplaQueryService();
+            var modules = Config.Modules.Select(x => x.AsAmplaModule());
 
-            IMultiPartFileNamingStrategy namingStrategy = new ByAssetXlsxMultiPartNamingStrategy();
-            IReportingPointDataReadStrategy readStrategy = new XlsxReportingPointDataStrategy(namingStrategy);
-
-            var modules = new[] { AmplaModules.Downtime, AmplaModules.Production, AmplaModules.Knowledge };
-            var reportingPoints = amplaQueryService.GetHeirarchyReportingPointsFor(modules);
+            var reportingPoints = _amplaQueryService.GetHeirarchyReportingPointsFor(modules);
 
             var reportingPointData = new Dictionary<ReportingPoint, IEnumerable<ReportingPointRecord>>();
 
             foreach (var reportingPoint in reportingPoints)
             {
-                reportingPointData[reportingPoint] = readStrategy.Read(importPath, reportingPoint).ToArray();
+                reportingPointData[reportingPoint] = _readWriteStrategy.Read(importPath, reportingPoint).ToArray();
             }
 
             return reportingPointData;

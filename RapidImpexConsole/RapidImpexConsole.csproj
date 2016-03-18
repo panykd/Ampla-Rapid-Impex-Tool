@@ -60,6 +60,14 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\RapidImpex.Ampla\RapidImpex.Ampla.csproj">
+      <Project>{777CEA1B-338D-43F3-BF1F-FFD92826FBFB}</Project>
+      <Name>RapidImpex.Ampla</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RapidImpex.Data\RapidImpex.Data.csproj">
+      <Project>{BA9825C2-FA91-49C7-A7AE-B5C9AB6AB9D0}</Project>
+      <Name>RapidImpex.Data</Name>
+    </ProjectReference>
     <ProjectReference Include="..\RapidImpex.Functionality\RapidImpex.Functionality.csproj">
       <Project>{20aa74e1-c697-458e-ac95-71db34e331c7}</Project>
       <Name>RapidImpex.Functionality</Name>

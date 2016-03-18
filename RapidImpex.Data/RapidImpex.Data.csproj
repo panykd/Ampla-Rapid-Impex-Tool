@@ -41,6 +41,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -48,10 +49,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="ByAssetXlsxMultiPartNamingStrategy.cs" />
+    <Compile Include="DataModule.cs" />
+    <Compile Include="IMultiPartFileNamingStrategy.cs" />
+    <Compile Include="IReportingPointDataReadWriteStrategy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ThreadLockedReportingPointDataReadWriteStrategyAdapter.cs" />
+    <Compile Include="XlsxReportingPointDataStrategy.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\RapidImpex.Ampla\RapidImpex.Ampla.csproj">
+      <Project>{777CEA1B-338D-43F3-BF1F-FFD92826FBFB}</Project>
+      <Name>RapidImpex.Ampla</Name>
+    </ProjectReference>
     <ProjectReference Include="..\RapidImpex.Models\RapidImpex.Models.csproj">
       <Project>{61fc2568-ebb0-4e48-9054-a34463c84997}</Project>
       <Name>RapidImpex.Models</Name>

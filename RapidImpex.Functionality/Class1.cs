@@ -7,7 +7,7 @@ using Autofac;
 
 namespace RapidImpex.Functionality
 {
-    class FunctionalityModule : Module
+    public class FunctionalityModule : Module
     {
         protected override void Load(ContainerBuilder builder)
         {

@@ -4,18 +4,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{8E0CD5A5-9E7A-48B9-B676-8ADD4505E244}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{20AA74E1-C697-458E-AC95-71DB34E331C7}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>RapidImpexConsole</RootNamespace>
-    <AssemblyName>RapidImpexConsole</AssemblyName>
+    <RootNamespace>RapidImpex.Functionality</RootNamespace>
+    <AssemblyName>RapidImpex.Functionality</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -25,7 +23,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -38,36 +35,37 @@
       <HintPath>..\packages\Autofac.3.5.2\lib\net40\Autofac.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="FluentCommandLineParser, Version=1.4.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\FluentCommandLineParser.1.4.3\lib\net35\FluentCommandLineParser.dll</HintPath>
-      <Private>True</Private>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\GlobalAssemblyInfo.cs">
-      <Link>Properties\GlobalAssemblyInfo.cs</Link>
-    </Compile>
-    <Compile Include="Program.cs" />
+    <Compile Include="Class1.cs" />
+    <Compile Include="IRapidImpexFunctionality.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RapidImpex.cs" />
+    <Compile Include="RapidImpexExportFunctionality.cs" />
+    <Compile Include="RapidImpexImportFunctionality.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\RapidImpex.Functionality\RapidImpex.Functionality.csproj">
-      <Project>{20aa74e1-c697-458e-ac95-71db34e331c7}</Project>
-      <Name>RapidImpex.Functionality</Name>
+    <ProjectReference Include="..\RapidImpex.Ampla\RapidImpex.Ampla.csproj">
+      <Project>{777cea1b-338d-43f3-bf1f-ffd92826fbfb}</Project>
+      <Name>RapidImpex.Ampla</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RapidImpex.Data\RapidImpex.Data.csproj">
+      <Project>{BA9825C2-FA91-49C7-A7AE-B5C9AB6AB9D0}</Project>
+      <Name>RapidImpex.Data</Name>
     </ProjectReference>
     <ProjectReference Include="..\RapidImpex.Models\RapidImpex.Models.csproj">
-      <Project>{61fc2568-ebb0-4e48-9054-a34463c84997}</Project>
+      <Project>{61FC2568-EBB0-4E48-9054-A34463C84997}</Project>
       <Name>RapidImpex.Models</Name>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

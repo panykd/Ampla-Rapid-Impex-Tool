@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace RapidImpex.Models
@@ -11,5 +12,14 @@ namespace RapidImpex.Models
         public bool IsConfirmed { get; set; }
 
         public Dictionary<string, object> Values { get; set; }  
+    }
+
+    public class RapidImpexConfiguration
+    {
+        public string WorkingDirectory { get; set; }
+        public string[] Modules { get; set; }
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+        public bool IsImport { get; set; }
     }
 }

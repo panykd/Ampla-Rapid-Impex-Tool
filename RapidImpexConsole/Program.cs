@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web.Instrumentation;
+using Fclp;
 using RapidImpex.Ampla;
 using RapidImpex.Ampla.AmplaData200806;
 using RapidImpex.Models;
@@ -8,17 +10,104 @@ using RelationshipMatrix = RapidImpex.Models.RelationshipMatrix;
 
 namespace RapidImpexConsole
 {
+    // Required Parameters
+    // - Import/export location (Same)
+    // - Start Time
+    // - End Time
+    // - modules
+
     class Program
     {
+        private static readonly RapidImpexConfiguration Config = new RapidImpexConfiguration();
+
+        static FluentCommandLineParser BootstrapConfigurationParser(string[] args)
+        {
+            var parser = new FluentCommandLineParser();
+            
+            parser.Setup<bool>('i', "import")
+                .Callback(v => Config.IsImport = v)
+                .SetDefault(false)
+                .WithDescription("Set to use tool to import rather than export");
+
+            parser.Setup<string>('p', "path")
+                .Callback(v => Config.WorkingDirectory = v)
+                .SetDefault(Environment.CurrentDirectory)
+                .WithDescription("The path to export / import files to/from");
+
+            parser.Setup<List<string>>('m', "modules")
+                .Callback(v => Config.Modules = v.Select(x => x.AsAmplaModule()).ToArray())
+                .Required()
+                .WithDescription("The ampla modules to export from the project");
+
+            // Time properties
+
+            parser.Setup<string>('s', "start")
+                .Callback(v =>
+                {
+                    var dateTime = Convert.ToDateTime(v);
+                    Config.StartTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Local);
+                })
+                .WithDescription("LOCAL Start Time to export data from. Only used during Export.");
+
+            parser.Setup<string>('S', "utcStart")
+                .Callback(v =>
+                {
+                    var dateTime = Convert.ToDateTime(v);
+                    Config.StartTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+                })
+                .WithDescription("UTC Start Time to export data from. Only used during Export.");
+
+            parser.Setup<string>('e', "end")
+                .Callback(v =>
+                {
+                    var dateTime = Convert.ToDateTime(v);
+                    Config.EndTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Local);
+                })
+                .WithDescription("LOCAL End Time to export data to. Only used during Export.");
+
+            parser.Setup<string>('E', "utcEnd")
+                .Callback(v =>
+                {
+                    var dateTime = Convert.ToDateTime(v);
+                    Config.EndTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+                })
+                .WithDescription("UTC Start Time to export data from. Only used during Export.");
+
+            parser.SetupHelp("help", "h", "/?");
+
+            return parser;
+        }
+
         static void Main(string[] args)
         {
-            var peristencePath = @"c:\temp\";
+            var parser =  BootstrapConfigurationParser(args);
 
-            //ExportChain(peristencePath);
+            var result = parser.Parse(args);
 
-            ImportChain(peristencePath);
+            if (result.HelpCalled || result.EmptyArgs)
+            {
+                Console.WriteLine();
+                Console.WriteLine("'Rapid Impex' is a lightweight, generic, and fast Console-based Ampla data importer and exporter.");
+                Console.WriteLine();
+                Console.WriteLine("Usage:");
+                Console.WriteLine(parser.OptionFormatter.Format(parser.Options));
+                return;
+            }
 
-            //IDataWebService client = new DataWebServiceClient("NetTcp");
+            if (result.HasErrors)
+            {
+                Console.WriteLine(result.ErrorText);
+                return;
+            }
+
+            if (Config.IsImport)
+            {
+                ImportChain(Config.WorkingDirectory);
+            }
+            else
+            {
+                ExportChain(Config.WorkingDirectory, Config.StartTime, Config.EndTime);   
+            }
         }
 
         private static string ToAmplaValueString(object value)
@@ -217,7 +306,7 @@ namespace RapidImpexConsole
             return reportingPointData;
         }
 
-        private static void ExportChain(string peristencePath)
+        private static void ExportChain(string peristencePath, DateTime startTime, DateTime endTime)
         {
             var amplaQueryService = new AmplaQueryService();
 
@@ -225,14 +314,11 @@ namespace RapidImpexConsole
 
             var reportingPoints = amplaQueryService.GetHeirarchyReportingPointsFor(modules);
 
-            var endTimeUtc = DateTime.UtcNow;
-            var startTimeUtc = endTimeUtc.AddDays(-1);
-
             var reportingPointData = new Dictionary<ReportingPoint, IEnumerable<ReportingPointRecord>>();
 
             foreach (var reportingPoint in reportingPoints)
             {
-                var reportingPointRecords = amplaQueryService.GetData(reportingPoint, startTimeUtc, endTimeUtc);
+                var reportingPointRecords = amplaQueryService.GetData(reportingPoint, startTime, endTime);
 
                 reportingPointData.Add(reportingPoint, reportingPointRecords);
             }
@@ -250,6 +336,15 @@ namespace RapidImpexConsole
                 writeStrategy.Write(outputPath, rpd.Key, rpd.Value);
             }
         }
+    }
+
+    public class RapidImpexConfiguration
+    {
+        public string WorkingDirectory { get; set; }
+        public AmplaModules[] Modules { get; set; }
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+        public bool IsImport { get; set; }
     }
 
     public interface IReportingPointDataReadStrategy

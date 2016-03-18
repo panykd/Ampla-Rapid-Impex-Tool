@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="7bfcd959-1f58-40bb-9492-02a7fce2cb72" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+  <ClientOptions>
+    <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
+    <GenerateTaskBasedAsynchronousMethod>true</GenerateTaskBasedAsynchronousMethod>
+    <EnableDataBinding>true</EnableDataBinding>
+    <ExcludedTypes />
+    <ImportXmlTypes>false</ImportXmlTypes>
+    <GenerateInternalTypes>false</GenerateInternalTypes>
+    <GenerateMessageContracts>false</GenerateMessageContracts>
+    <NamespaceMappings />
+    <CollectionMappings />
+    <GenerateSerializableTypes>true</GenerateSerializableTypes>
+    <Serializer>Auto</Serializer>
+    <UseSerializerForFaults>true</UseSerializerForFaults>
+    <ReferenceAllAssemblies>true</ReferenceAllAssemblies>
+    <ReferencedAssemblies />
+    <ReferencedDataContractTypes />
+    <ServiceContractMappings />
+  </ClientOptions>
+  <MetadataSources>
+    <MetadataSource Address="http://localhost:8889/Ampla/Data/2008/06/Soap11" Protocol="http" SourceId="1" />
+  </MetadataSources>
+  <Metadata>
+    <MetadataFile FileName="Soap11.disco" MetadataType="Disco" ID="10ef0506-6ddc-4da3-8e0e-14923e1bb45b" SourceId="1" SourceUrl="http://localhost:8889/Ampla/Data/2008/06/Soap11?disco" />
+    <MetadataFile FileName="DataWebService.wsdl" MetadataType="Wsdl" ID="0f9799a7-a542-436f-8818-56ca6f596e01" SourceId="1" SourceUrl="http://localhost:8889/Ampla/Data/2008/06/Soap11?wsdl" />
+    <MetadataFile FileName="Soap11.wsdl" MetadataType="Wsdl" ID="0fe78e8f-6841-47e7-890b-88525b17121a" SourceId="1" SourceUrl="http://localhost:8889/Ampla/Data/2008/06/Soap11?wsdl=wsdl0" />
+  </Metadata>
+  <Extensions>
+    <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />
+    <ExtensionFile FileName="configuration.svcinfo" Name="configuration.svcinfo" />
+  </Extensions>
+</ReferenceGroup>

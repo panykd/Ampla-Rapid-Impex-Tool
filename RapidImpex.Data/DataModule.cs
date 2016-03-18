@@ -9,16 +9,16 @@ namespace RapidImpex.Data
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.Register(c => new DataWebServiceClient("NetTcp"))
-                .As<IDataWebService>()
-                .SingleInstance();
-
             builder.RegisterDecorator<IReportingPointDataReadWriteStrategy>((c, inner) =>
                 new ThreadLockedReportingPointDataReadWriteStrategyAdapter(inner),
                 "xlsx");
 
             builder.RegisterType<XlsxReportingPointDataStrategy>()
                 .Named<IReportingPointDataReadWriteStrategy>("xlsx")
+                .SingleInstance();
+
+            builder.RegisterType<ByAssetXlsxMultiPartNamingStrategy>()
+                .As<IMultiPartFileNamingStrategy>()
                 .SingleInstance();
         }
     }

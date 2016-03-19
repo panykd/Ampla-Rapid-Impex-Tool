@@ -18,84 +18,72 @@ namespace RapidImpex.Ampla
             _amplaQueryService = amplaQueryService;
         }
 
-        public void SubmitRecords(Dictionary<ReportingPoint, IEnumerable<ReportingPointRecord>> reportingPointData)
+        public void SubmitRecords(IEnumerable<ReportingPointRecord> records)
         {
             var submitDataRecords = new List<SubmitDataRecord>();
 
-            foreach (var rpd in reportingPointData)
+            IAmplaVersionModifier versionModifier = new AmplaVersionModifier();
+
+            foreach (var record in records)
             {
-                var reportingPoint = rpd.Key;
+                var reportingPoint = record.ReportingPoint;
 
-                var location = reportingPoint.FullName;
-                var module = reportingPoint.Module.AsAmplaModule();
+                var location = record.ReportingPoint.FullName;
+                var module = record.ReportingPoint.Module.AsAmplaModule();
 
-                var excludedFields = new[]
+                var submitDataRecord = new SubmitDataRecord()
                 {
-                    "HasAudit",
-                    "CreatedBy",
-                    "IsManual",
-                    "CreatedDateTime",
-                    "ConfirmedBy",
-                    "ConfirmedDateTime",
-                    "IsDeleted",
-                    "ObjectId"
+                    Location = location,
+                    Module = module,
+                    MergeCriteria = new MergeCriteria()
+                    {
+                        SetId = record.Id
+                    }
                 };
 
-                foreach (var record in rpd.Value)
+                var fieldValues = (from fv in record.Values
+                    join rpf in reportingPoint.Fields on fv.Key equals rpf.Key
+                    where
+                        !rpf.Value.IsReadOnly &&
+                        !versionModifier.AdditionalReadonlyFields(reportingPoint).Contains(fv.Key)
+                    select new Field()
+                    {
+                        Name = versionModifier.AmplaFieldName(reportingPoint, fv.Key),
+                        Value = ToAmplaValueString(fv.Value)
+                    }).ToArray();
+
+                // update the field values for the relationship matrix
+
+                var causeLocationField = fieldValues.FirstOrDefault(x => x.Name == "Cause Location");
+
+                if (causeLocationField != null)
                 {
+                    var causeLocation = causeLocationField.Value;
 
-                    var submitDataRecord = new SubmitDataRecord()
+                    var relationshipMatrix =
+                        new Lazy<RelationshipMatrix>(
+                            () => _amplaQueryService.GetRelationshipMatrixFor(reportingPoint, causeLocation));
+
+                    var causeField = fieldValues.FirstOrDefault(x => x.Name == "Cause");
+
+                    if (causeField != null && !String.IsNullOrWhiteSpace(causeField.Value))
                     {
-                        Location = location,
-                        Module = module,
-                        MergeCriteria = new MergeCriteria()
-                        {
-                            SetId = record.Id
-                        }
-                    };
-
-                    var fieldValues = (from fv in record.Values
-                        join rpf in reportingPoint.Fields on fv.Key equals rpf.Key
-                        where !rpf.Value.IsReadOnly && !excludedFields.Contains(fv.Key)
-                        select new Field()
-                        {
-                            Name = AmplaFieldName(reportingPoint, fv.Key),
-                            Value = ToAmplaValueString(fv.Value)
-                        }).ToArray();
-
-                    // update the field values for the relationship matrix
-
-
-                    var causeLocationField = fieldValues.FirstOrDefault(x => x.Name == "Cause Location");
-
-                    if (causeLocationField != null)
-                    {
-                        var causeLocation = causeLocationField.Value;
-
-                        var relationshipMatrix =
-                            new Lazy<RelationshipMatrix>(() => _amplaQueryService.GetRelationshipMatrixFor(reportingPoint, causeLocation));
-
-                        var causeField = fieldValues.FirstOrDefault(x => x.Name == "Cause");
-
-                        if (causeField != null && !String.IsNullOrWhiteSpace(causeField.Value))
-                        {
-                            causeField.Value = relationshipMatrix.Value.GetCauseCode(causeField.Value).ToString();
-                        }
-
-                        var classificationField = fieldValues.FirstOrDefault(x => x.Name == "Classification");
-
-                        if (classificationField != null && !String.IsNullOrWhiteSpace(classificationField.Value))
-                        {
-                            classificationField.Value =
-                                relationshipMatrix.Value.GetCauseCode(classificationField.Value).ToString();
-                        }
+                        causeField.Value = relationshipMatrix.Value.GetCauseCode(causeField.Value).ToString();
                     }
 
-                    submitDataRecord.Fields = fieldValues.ToArray();
+                    var classificationField = fieldValues.FirstOrDefault(x => x.Name == "Classification");
 
-                    // Handle Record Values
-                    submitDataRecords.Add(submitDataRecord);
+                    if (classificationField != null && !String.IsNullOrWhiteSpace(classificationField.Value))
+                    {
+                        classificationField.Value =
+                            relationshipMatrix.Value.GetCauseCode(classificationField.Value).ToString();
+                    }
                 }
+
+                submitDataRecord.Fields = fieldValues.ToArray();
+
+                // Handle Record Values
+                submitDataRecords.Add(submitDataRecord);
             }
 
             if (submitDataRecords.Any())
@@ -122,7 +110,70 @@ namespace RapidImpex.Ampla
             return value.ToString();
         }
 
-        private static string AmplaFieldName(ReportingPoint reportingPoint, string fieldName)
+        public void DeleteRecords(IEnumerable<ReportingPointRecord> records)
+        {
+            var deleteRecords = new List<DeleteRecord>();
+
+            foreach (var record in records)
+            {
+                deleteRecords.Add(new DeleteRecord()
+                {
+                    Location = record.ReportingPoint.FullName,
+                    Module = record.ReportingPoint.Module.AsAmplaModule(),
+                    MergeCriteria = new DeleteRecordsMergeCriteria()
+                    {
+                        SetId = record.Id
+                    }
+                });
+            }
+
+            // Submit the records
+            if (deleteRecords.Any())
+            {
+                _client.DeleteRecords(new DeleteRecordsRequestMessage(new DeleteRecordsRequest()
+                {
+                    DeleteRecords = deleteRecords.ToArray()
+                }));
+            }
+        }
+
+        public void ConfirmRecords(IEnumerable<ReportingPointRecord> records)
+        {
+            var confirmRecords = new List<UpdateRecordStatus>();
+
+            foreach (var record in records)
+            {
+                confirmRecords.Add(new UpdateRecordStatus()
+                {
+                    Location = record.ReportingPoint.FullName,
+                    Module = record.ReportingPoint.Module.AsAmplaModule(),
+                    RecordAction = UpdateRecordStatusAction.Confirm,
+                    MergeCriteria = new UpdateRecordStatusMergeCriteria()
+                    {
+                        SetId = record.Id
+                    }
+                });
+            }
+
+            if (confirmRecords.Any())
+            {
+                _client.UpdateRecordStatus(new UpdateRecordStatusRequestMessage(new UpdateRecordStatusRequest()
+                {
+                    UpdateRecords = confirmRecords.ToArray()
+                }));
+            }
+        }
+    }
+
+    public interface IAmplaVersionModifier
+    {
+        string AmplaFieldName(ReportingPoint reportingPoint, string fieldName);
+        string[] AdditionalReadonlyFields(ReportingPoint reportingPoint);
+    }
+
+    public class AmplaVersionModifier : IAmplaVersionModifier
+    {
+        public string AmplaFieldName(ReportingPoint reportingPoint, string fieldName)
         {
             var rpf = reportingPoint.Fields.First(x => fieldName == x.Value.Id || fieldName == x.Value.DisplayName).Value;
 
@@ -139,83 +190,19 @@ namespace RapidImpex.Ampla
             return fieldName;
         }
 
-        public void DeleteRecords(Dictionary<ReportingPoint, IEnumerable<ReportingPointRecord>> reportingPointData)
+        public string[] AdditionalReadonlyFields(ReportingPoint reportingPoint)
         {
-            var deleteRecords = new List<DeleteRecord>();
-
-            foreach (var rpd in reportingPointData)
-            {
-                var reportingPoint = rpd.Key;
-
-                var location = reportingPoint.FullName;
-                var module = reportingPoint.Module.AsAmplaModule();
-
-                foreach (var record in rpd.Value)
+            return new []
                 {
-                    // Handle Deleted Records
-                    if (record.IsDeleted)
-                    {
-                        deleteRecords.Add(new DeleteRecord()
-                        {
-                            Location = location,
-                            Module = module,
-                            MergeCriteria = new DeleteRecordsMergeCriteria()
-                            {
-                                SetId = record.Id
-                            }
-                        });
-                    }
-                }
-            }
-
-            // Submit the records
-            if (deleteRecords.Any())
-            {
-                _client.DeleteRecords(new DeleteRecordsRequestMessage(new DeleteRecordsRequest()
-                {
-                    DeleteRecords = deleteRecords.ToArray()
-                }));
-            }
+                    "HasAudit",
+                    "CreatedBy",
+                    "IsManual",
+                    "CreatedDateTime",
+                    "ConfirmedBy",
+                    "ConfirmedDateTime",
+                    "IsDeleted",
+                    "ObjectId"
+                };
         }
-
-        public void ConfirmRecords(Dictionary<ReportingPoint, IEnumerable<ReportingPointRecord>> reportingPointData)
-        {
-            var confirmRecords = new List<UpdateRecordStatus>();
-
-            foreach (var rpd in reportingPointData)
-            {
-                var reportingPoint = rpd.Key;
-
-                var location = reportingPoint.FullName;
-                var module = reportingPoint.Module.AsAmplaModule();
-
-                foreach (var record in rpd.Value)
-                {
-                    // Handle Confirmed Records
-                    if (record.IsConfirmed)
-                    {
-                        confirmRecords.Add(new UpdateRecordStatus()
-                        {
-                            Location = location,
-                            Module = module,
-                            RecordAction = UpdateRecordStatusAction.Confirm,
-                            MergeCriteria = new UpdateRecordStatusMergeCriteria()
-                            {
-                                SetId = record.Id
-                            }
-                        });
-                    }
-                }
-            }
-
-            if (confirmRecords.Any())
-            {
-                _client.UpdateRecordStatus(new UpdateRecordStatusRequestMessage(new UpdateRecordStatusRequest()
-                {
-                    UpdateRecords = confirmRecords.ToArray()
-                }));
-            }
-        }
-
     }
 }

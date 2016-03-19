@@ -5,7 +5,6 @@ using RapidImpex.Ampla;
 using RapidImpex.Ampla.AmplaData200806;
 using RapidImpex.Data;
 using RapidImpex.Models;
-using RelationshipMatrix = RapidImpex.Models.RelationshipMatrix;
 
 namespace RapidImpex.Functionality
 {
@@ -25,29 +24,30 @@ namespace RapidImpex.Functionality
 
         public override void Execute()
         {
-            var reportingPointData = ImportData(Config.WorkingDirectory);
+            var records = ImportData(Config.WorkingDirectory).ToArray();
 
-            _amplaCommandService.SubmitRecords(reportingPointData);
+            _amplaCommandService.SubmitRecords(records);
+            
 
-            _amplaCommandService.DeleteRecords(reportingPointData);
+            _amplaCommandService.DeleteRecords(records.Where(x => x.IsDeleted));
 
-            _amplaCommandService.ConfirmRecords(reportingPointData);
+            _amplaCommandService.ConfirmRecords(records.Where(x => x.IsConfirmed));
         }
 
-        private Dictionary<ReportingPoint, IEnumerable<ReportingPointRecord>> ImportData(string importPath)
+        private IEnumerable<ReportingPointRecord> ImportData(string importPath)
         {
             var modules = Config.Modules.Select(x => x.AsAmplaModule());
 
             var reportingPoints = _amplaQueryService.GetHeirarchyReportingPointsFor(modules);
 
-            var reportingPointData = new Dictionary<ReportingPoint, IEnumerable<ReportingPointRecord>>();
+            var records = new List<ReportingPointRecord>();
 
             foreach (var reportingPoint in reportingPoints)
             {
-                reportingPointData[reportingPoint] = _readWriteStrategy.Read(importPath, reportingPoint).ToArray();
+                records.AddRange(_readWriteStrategy.Read(importPath, reportingPoint).ToArray());
             }
 
-            return reportingPointData;
+            return records;
         }
     }
 }

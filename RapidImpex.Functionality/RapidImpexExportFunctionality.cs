@@ -23,19 +23,14 @@ namespace RapidImpex.Functionality
 
             var reportingPoints = _amplaQueryService.GetHeirarchyReportingPointsFor(modules);
 
-            var reportingPointData = new Dictionary<ReportingPoint, IEnumerable<ReportingPointRecord>>();
+            var records = new List<ReportingPointRecord>();
 
             foreach (var reportingPoint in reportingPoints)
             {
-                var reportingPointRecords = _amplaQueryService.GetData(reportingPoint, Config.StartTime, Config.EndTime);
-
-                reportingPointData.Add(reportingPoint, reportingPointRecords);
+                records.AddRange(_amplaQueryService.GetData(reportingPoint, Config.StartTime, Config.EndTime));
             }
 
-            foreach (var rpd in reportingPointData)
-            {
-                _readWriteStrategy.Write(Config.WorkingDirectory, rpd.Key, rpd.Value);
-            }
+            _readWriteStrategy.Write(Config.WorkingDirectory, records);
         }
     }
 }

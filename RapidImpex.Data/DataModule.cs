@@ -1,7 +1,4 @@
-﻿using System.Text;
-using System.Threading.Tasks;
-using Autofac;
-using RapidImpex.Ampla.AmplaData200806;
+﻿using Autofac;
 
 namespace RapidImpex.Data
 {

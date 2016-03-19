@@ -7,6 +7,6 @@ namespace RapidImpex.Data
     {
         IEnumerable<ReportingPointRecord> Read(string inputPath, ReportingPoint reportingPoint);
 
-        void Write(string outputPath, ReportingPoint reportingPoint, IEnumerable<ReportingPointRecord> records);
+        void Write(string outputPath, IEnumerable<ReportingPointRecord> records);
     }
 }

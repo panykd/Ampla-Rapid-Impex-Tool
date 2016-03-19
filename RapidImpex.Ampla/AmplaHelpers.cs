@@ -54,6 +54,7 @@ namespace RapidImpex.Ampla
 
             var record = new ReportingPointRecord
             {
+                ReportingPoint = reportingPoint,
                 Id = long.Parse(row.id),
                 IsDeleted = row.SafeGet<bool>("Deleted"),
                 IsConfirmed = row.SafeGet<bool>("Confirmed"),

@@ -26,11 +26,11 @@ namespace RapidImpex.Data
             return results;
         }
 
-        public void Write(string outputPath, ReportingPoint reportingPoint, IEnumerable<ReportingPointRecord> records)
+        public void Write(string outputPath, IEnumerable<ReportingPointRecord> records)
         {
             _locker.EnterWriteLock();
 
-            _instance.Write(outputPath, reportingPoint, records);
+            _instance.Write(outputPath, records);
 
             _locker.ExitWriteLock();
         }

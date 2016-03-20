@@ -1,8 +1,10 @@
 ﻿using System;
 using Autofac;
+using AutofacSerilogIntegration;
 using RapidImpex.Ampla;
 using RapidImpex.Data;
 using RapidImpex.Functionality;
+using Serilog;
 
 namespace RapidImpexConsole
 {
@@ -11,6 +13,9 @@ namespace RapidImpexConsole
         static IContainer BootstrapAutofac()
         {
             var builder = new ContainerBuilder();
+
+            // Register Logging
+            builder.RegisterLogger(Log.Logger, true);
 
             // Load Modules
             builder.RegisterModule<AmplaModule>();
@@ -26,11 +31,21 @@ namespace RapidImpexConsole
 
         static void Main(string[] args)
         {
+            BootstrapLogger();
+
             var container = BootstrapAutofac();
 
             var app = container.Resolve<RapidImpex>();
 
             app.Run(args);
+        }
+
+        private static void BootstrapLogger()
+        {
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.ColoredConsole()
+                .MinimumLevel.Debug()
+                .CreateLogger();
         }
     }
 }

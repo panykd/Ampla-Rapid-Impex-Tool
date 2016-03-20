@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using RapidImpex.Ampla;
-using RapidImpex.Ampla.AmplaData200806;
 using RapidImpex.Data;
 using RapidImpex.Models;
 
@@ -10,16 +10,15 @@ namespace RapidImpex.Functionality
 {
     public class RapidImpexImportFunctionality : RapidImpexImportFunctionalityBase
     {
-        private readonly IDataWebService _dataWebService;
         private readonly AmplaQueryService _amplaQueryService;
         private readonly AmplaCommandService _amplaCommandService;
         private readonly IReportingPointDataReadWriteStrategy _readWriteStrategy;
 
-        public RapidImpexImportFunctionality(IDataWebService dataWebService, AmplaQueryService amplaQueryService, IReportingPointDataReadWriteStrategy readWriteStrategy)
+        public RapidImpexImportFunctionality(AmplaQueryService amplaQueryService, IReportingPointDataReadWriteStrategy readWriteStrategy, AmplaCommandService amplaCommandService)
         {
-            _dataWebService = dataWebService;
             _amplaQueryService = amplaQueryService;
             _readWriteStrategy = readWriteStrategy;
+            _amplaCommandService = amplaCommandService;
         }
 
         public override void Execute()
@@ -28,13 +27,12 @@ namespace RapidImpex.Functionality
 
             _amplaCommandService.SubmitRecords(records);
             
-
             _amplaCommandService.DeleteRecords(records.Where(x => x.IsDeleted));
 
             _amplaCommandService.ConfirmRecords(records.Where(x => x.IsConfirmed));
         }
 
-        private IEnumerable<ReportingPointRecord> ImportData(string importPath)
+        private List<ReportingPointRecord> ImportData(string importPath)
         {
             var modules = Config.Modules.Select(x => x.AsAmplaModule());
 

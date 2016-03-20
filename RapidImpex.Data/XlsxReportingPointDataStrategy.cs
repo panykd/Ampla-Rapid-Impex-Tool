@@ -146,7 +146,6 @@ namespace RapidImpex.Data
 
         public void Write(string outputPath, IEnumerable<ReportingPointRecord> records)
         {
-            
             var reportingPointData = records.GroupBy(x => x.ReportingPoint);
 
             foreach (var rpd in reportingPointData)

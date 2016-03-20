@@ -4,11 +4,14 @@ using Autofac.Features.Indexed;
 using Fclp;
 using RapidImpex.Functionality;
 using RapidImpex.Models;
+using Serilog;
 
 namespace RapidImpexConsole
 {
     public class RapidImpex
     {
+        public ILogger Logger { get; set; }
+
         private readonly IIndex<string, IRapidImpexFunctionality> _functionalityFactory;
 
         public RapidImpex(IIndex<string, IRapidImpexFunctionality> functionalityFactory)
@@ -44,15 +47,21 @@ namespace RapidImpexConsole
 
             if (Config.IsImport)
             {
+                Logger.Information("Loading 'Import' Functionality");
+
                 functionality = _functionalityFactory["import"];
             }
             else
             {
+                Logger.Information("Loading 'Export' Functionality");
+
                 functionality = _functionalityFactory["export"];
             }
 
+            Logger.Debug("Initializing");
             functionality.Initialize(Config);
 
+            Logger.Debug("Executing");
             functionality.Execute();
         }
 

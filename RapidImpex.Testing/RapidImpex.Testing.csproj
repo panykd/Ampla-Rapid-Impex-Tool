@@ -55,7 +55,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
     <Compile Include="Features\AmplaModuleTranslation.feature.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

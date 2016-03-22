@@ -86,6 +86,11 @@ namespace RapidImpexConsole
                 .Callback(v => Config.Password = v)
                 .WithDescription("Simple Security Password");
 
+            parser.Setup<bool>("simple")
+                .Callback(v => Config.UseSimpleAuthentication = v)
+                .SetDefault(false)
+                .WithDescription("Use Simple Authentication instead of Integrated Windows Authentication");
+
             // Other Settings
 
             parser.Setup<bool>('i', "import")

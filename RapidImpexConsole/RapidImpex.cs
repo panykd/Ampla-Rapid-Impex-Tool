@@ -69,6 +69,23 @@ namespace RapidImpexConsole
         {
             var parser = new FluentCommandLineParser();
 
+            // Transport Options
+
+            parser.Setup<bool>("useHttp")
+                .Callback(v => Config.UseBasicHttp = v)
+                .SetDefault(false)
+                .WithDescription("Use Basic HTTP instead of TCP");
+
+            parser.Setup<string>("user")
+                .Callback(v => Config.Username = v)
+                .WithDescription("Simple Security Username");
+
+            parser.Setup<string>("password")
+                .Callback(v => Config.Password = v)
+                .WithDescription("Simple Security Password");
+
+            // Other Settings
+
             parser.Setup<bool>('i', "import")
                 .Callback(v => Config.IsImport = v)
                 .SetDefault(false)
@@ -84,7 +101,7 @@ namespace RapidImpexConsole
                 .Required()
                 .WithDescription("The ampla modules to export from the project");
 
-            // Time properties
+            // Time Properties
 
             parser.Setup<string>('s', "start")
                 .Callback(v =>
@@ -118,7 +135,8 @@ namespace RapidImpexConsole
                 })
                 .WithDescription("UTC Start Time to export data from. Only used during Export.");
 
-            parser.SetupHelp("help", "h", "/?");
+            // Setup help
+            parser.SetupHelp("help", "h");
 
             return parser;
         }

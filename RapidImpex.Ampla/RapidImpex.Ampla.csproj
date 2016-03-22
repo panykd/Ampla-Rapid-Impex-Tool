@@ -61,6 +61,7 @@
     <Compile Include="AmplaHelpers.cs" />
     <Compile Include="AmplaModule.cs" />
     <Compile Include="AmplaQueryService.cs" />
+    <Compile Include="DataWebServiceFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Service References\AmplaData200806\Reference.cs">
       <AutoGen>True</AutoGen>

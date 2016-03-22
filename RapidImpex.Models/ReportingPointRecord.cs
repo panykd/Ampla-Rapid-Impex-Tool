@@ -23,5 +23,9 @@ namespace RapidImpex.Models
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public bool IsImport { get; set; }
+        public bool UseSimpleAuthentication { get; set; }
+        public string Username { get; set; }
+        public string Password { get; set; }
+        public bool UseBasicHttp { get; set; }
     }
 }

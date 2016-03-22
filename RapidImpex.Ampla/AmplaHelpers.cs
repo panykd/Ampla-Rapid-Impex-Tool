@@ -29,6 +29,9 @@ namespace RapidImpex.Ampla
                 case "xs:Double":
                     return typeof (double);
 
+                case "xs:Single":
+                    return typeof(float);
+
                 default:
                     throw new ArgumentOutOfRangeException("value", value);
             }

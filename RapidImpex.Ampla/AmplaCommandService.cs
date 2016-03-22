@@ -9,12 +9,12 @@ namespace RapidImpex.Ampla
 {
     public class AmplaCommandService
     {
-        private readonly IDataWebService _client;
+        private readonly DataWebServiceFactory _clientFactory;
         private readonly AmplaQueryService _amplaQueryService;
 
-        public AmplaCommandService(IDataWebService client, AmplaQueryService amplaQueryService)
+        public AmplaCommandService(DataWebServiceFactory clientFactory, AmplaQueryService amplaQueryService)
         {
-            _client = client;
+            _clientFactory = clientFactory;
             _amplaQueryService = amplaQueryService;
         }
 
@@ -86,10 +86,13 @@ namespace RapidImpex.Ampla
                 submitDataRecords.Add(submitDataRecord);
             }
 
+            var client = _clientFactory.GetClient();
+
             if (submitDataRecords.Any())
             {
-                _client.SubmitData(new SubmitDataRequestMessage(new SubmitDataRequest()
+                client.SubmitData(new SubmitDataRequestMessage(new SubmitDataRequest()
                 {
+                    Credentials = _clientFactory.GetCredentials(),
                     SubmitDataRecords = submitDataRecords.ToArray()
                 }));
             }
@@ -127,11 +130,14 @@ namespace RapidImpex.Ampla
                 });
             }
 
+            var client = _clientFactory.GetClient();
+
             // Submit the records
             if (deleteRecords.Any())
             {
-                _client.DeleteRecords(new DeleteRecordsRequestMessage(new DeleteRecordsRequest()
+                client.DeleteRecords(new DeleteRecordsRequestMessage(new DeleteRecordsRequest()
                 {
+                    Credentials = _clientFactory.GetCredentials(),
                     DeleteRecords = deleteRecords.ToArray()
                 }));
             }
@@ -155,10 +161,13 @@ namespace RapidImpex.Ampla
                 });
             }
 
+            var _client = _clientFactory.GetClient();
+
             if (confirmRecords.Any())
             {
                 _client.UpdateRecordStatus(new UpdateRecordStatusRequestMessage(new UpdateRecordStatusRequest()
                 {
+                    Credentials = _clientFactory.GetCredentials(),
                     UpdateRecords = confirmRecords.ToArray()
                 }));
             }

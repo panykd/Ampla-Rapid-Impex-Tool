@@ -17,6 +17,13 @@ namespace RapidImpex.Functionality
             _readWriteStrategy = readWriteStrategy;
         }
 
+        public override void Initialize(RapidImpexConfiguration configuration)
+        {
+            base.Initialize(configuration);
+
+            _amplaQueryService.Initialize(configuration);
+        }
+
         public override void Execute()
         {
             var modules = Config.Modules.Select(x => x.AsAmplaModule()).ToArray();

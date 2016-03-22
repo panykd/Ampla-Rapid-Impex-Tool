@@ -9,13 +9,20 @@ namespace RapidImpex.Ampla
 {
     public class AmplaCommandService
     {
-        private readonly DataWebServiceFactory _clientFactory;
+        private DataWebServiceFactory _clientFactory;
+        private readonly Func<RapidImpexConfiguration, DataWebServiceFactory> _factory;
         private readonly AmplaQueryService _amplaQueryService;
 
-        public AmplaCommandService(DataWebServiceFactory clientFactory, AmplaQueryService amplaQueryService)
+        public AmplaCommandService(Func<RapidImpexConfiguration, DataWebServiceFactory> factory, AmplaQueryService amplaQueryService)
         {
-            _clientFactory = clientFactory;
+            _factory = factory;
             _amplaQueryService = amplaQueryService;
+        }
+
+        public void Initialize(RapidImpexConfiguration configuration)
+        {
+            _clientFactory = _factory(configuration);
+            _amplaQueryService.Initialize(configuration);
         }
 
         public void SubmitRecords(IEnumerable<ReportingPointRecord> records)

@@ -1,4 +1,5 @@
 using Autofac;
+using Autofac.Core.Activators.Reflection;
 using RapidImpex.Ampla.AmplaData200806;
 
 namespace RapidImpex.Ampla

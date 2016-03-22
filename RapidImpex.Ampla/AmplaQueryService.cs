@@ -9,24 +9,33 @@ namespace RapidImpex.Ampla
 {
     public class AmplaQueryService
     {
-        private readonly IDataWebService _client;
+        private readonly Func<RapidImpexConfiguration, DataWebServiceFactory> _factory;
+        private DataWebServiceFactory _clientFactory;
 
-        public AmplaQueryService(IDataWebService client)
+        public AmplaQueryService(Func<RapidImpexConfiguration, DataWebServiceFactory> factory)
         {
-            _client = client;
+            _factory = factory;
+        }
+
+        public void Initialize(RapidImpexConfiguration configuration)
+        {
+            _clientFactory = _factory(configuration);
         }
 
         public IEnumerable<ReportingPoint> GetHeirarchyReportingPointsFor(IEnumerable<AmplaModules> modules)
         {
             var reportingPoints = new List<ReportingPoint>();
 
+            var client = _clientFactory.GetClient();
+
             foreach (var module in modules)
             {
-                var response = _client.GetNavigationHierarchy(new GetNavigationHierarchyRequestMessage(new GetNavigationHierarchyRequest()
+                var response = client.GetNavigationHierarchy(new GetNavigationHierarchyRequestMessage(new GetNavigationHierarchyRequest()
                 {
                     Context = NavigationContext.Plant,
                     Mode = NavigationMode.Location,
-                    Module = module
+                    Module = module, 
+                    Credentials = _clientFactory.GetCredentials()
                 }));
 
                 var viewPoints = response.GetNavigationHierarchyResponse.Hierarchy.ViewPoints;
@@ -64,11 +73,14 @@ namespace RapidImpex.Ampla
 
         public Dictionary<string, ReportingPointField> GetReportingPointFieldInformation(ReportingPoint reportingPoint)
         {
+            var _client = _clientFactory.GetClient();
+
             var response = _client.GetViews(new GetViewsRequestMessage(new GetViewsRequest
             {
                 Context = NavigationContext.Plant,
                 Mode = NavigationMode.Location,
                 Module = reportingPoint.Module.AsAmplaModule(),
+                Credentials = _clientFactory.GetCredentials(),
                 ViewPoint = reportingPoint.FullName
             }));
 
@@ -93,6 +105,7 @@ namespace RapidImpex.Ampla
                 {
                     Module = reportingPoint.Module.AsAmplaModule(),
                     Location = reportingPoint.FullName,
+                    Credentials = _clientFactory.GetCredentials(),
                     Fields = fieldsWithAllowedValues.ToArray()
                 }));
 
@@ -107,8 +120,12 @@ namespace RapidImpex.Ampla
 
         public IEnumerable<ReportingPointRecord> GetData(ReportingPoint reportingPoint, DateTime startTimeUtc, DateTime endTimeUtc)
         {
+            var _client = _clientFactory.GetClient();
+
             var request = new GetDataRequest
             {
+                Credentials = _clientFactory.GetCredentials(),
+
                 Filter = new DataFilter
                 {
                     Location = reportingPoint.FullName,
@@ -121,7 +138,7 @@ namespace RapidImpex.Ampla
                 {
                     Context = NavigationContext.Plant,
                     Mode = NavigationMode.Location,
-                    Module = reportingPoint.Module.AsAmplaModule(),
+                    Module = reportingPoint.Module.AsAmplaModule()
                 }
             };
 
@@ -142,9 +159,12 @@ namespace RapidImpex.Ampla
 
         public RelationshipMatrix GetRelationshipMatrixFor(ReportingPoint reportingPoint, string causeLocation)
         {
+            var _client = _clientFactory.GetClient();
+
             var response = _client.GetRelationshipMatrixValues(
                     new GetRelationshipMatrixValuesRequestMessage(new GetRelationshipMatrixValuesRequest()
                     {
+                        Credentials = _clientFactory.GetCredentials(),
                         Location =
                             "ERA - Ranger.Processing Plant.Crushing - Areas 21 22.Primary Crushing - Area 21.Primary Crusher.Downtime",
                         Module = AmplaModules.Downtime,

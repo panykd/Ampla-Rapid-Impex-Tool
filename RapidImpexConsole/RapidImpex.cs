@@ -12,14 +12,14 @@ namespace RapidImpexConsole
     {
         public ILogger Logger { get; set; }
 
-        private readonly IIndex<string, IRapidImpexFunctionality> _functionalityFactory;
+        private readonly IIndex<string, Func<RapidImpexConfiguration, IRapidImpexFunctionality>> _functionalityFactory;
 
-        public RapidImpex(IIndex<string, IRapidImpexFunctionality> functionalityFactory)
+        private static readonly RapidImpexConfiguration Config = new RapidImpexConfiguration();
+
+        public RapidImpex(IIndex<string, Func<RapidImpexConfiguration, IRapidImpexFunctionality>> functionalityFactory)
         {
             _functionalityFactory = functionalityFactory;
         }
-
-        private static readonly RapidImpexConfiguration Config = new RapidImpexConfiguration();
 
         public void Run(string[] args)
         {
@@ -43,20 +43,22 @@ namespace RapidImpexConsole
                 return;
             }
 
-            IRapidImpexFunctionality functionality;
+            Func<RapidImpexConfiguration, IRapidImpexFunctionality> funcFac;
 
             if (Config.IsImport)
             {
                 Logger.Information("Loading 'Import' Functionality");
 
-                functionality = _functionalityFactory["import"];
+                funcFac = _functionalityFactory["import"];
             }
             else
             {
                 Logger.Information("Loading 'Export' Functionality");
 
-                functionality = _functionalityFactory["export"];
+                funcFac = _functionalityFactory["export"];
             }
+
+            var functionality = funcFac(Config);
 
             Logger.Debug("Initializing");
             functionality.Initialize(Config);

@@ -10,10 +10,10 @@ namespace RapidImpex.Ampla
         private readonly RapidImpexConfiguration _configuration;
         private readonly IIndex<string, IDataWebService> _dataClientFactory;
 
-        public DataWebServiceFactory(RapidImpexConfiguration configuration, IIndex<string, IDataWebService> dataClientFactory)
+        public DataWebServiceFactory(IIndex<string, IDataWebService> dataClientFactory, RapidImpexConfiguration configuration)
         {
-            _configuration = configuration;
             _dataClientFactory = dataClientFactory;
+            _configuration = configuration;
         }
 
         public IDataWebService GetClient()

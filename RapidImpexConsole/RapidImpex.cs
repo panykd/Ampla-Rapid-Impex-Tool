@@ -78,39 +78,38 @@ namespace RapidImpexConsole
                 .SetDefault(false)
                 .WithDescription("Use Basic HTTP instead of TCP");
 
-            parser.Setup<string>("user")
+            parser.Setup<string>('u', "user")
                 .Callback(v => Config.Username = v)
                 .WithDescription("Simple Security Username");
 
-            parser.Setup<string>("password")
+            parser.Setup<string>('p', "password")
                 .Callback(v => Config.Password = v)
                 .WithDescription("Simple Security Password");
 
-            parser.Setup<bool>("simple")
+            parser.Setup<bool>("sa")
                 .Callback(v => Config.UseSimpleAuthentication = v)
                 .SetDefault(false)
                 .WithDescription("Use Simple Authentication instead of Integrated Windows Authentication");
 
             // Other Settings
-
-            parser.Setup<bool>('i', "import")
+            parser.Setup<bool>("import")
                 .Callback(v => Config.IsImport = v)
                 .SetDefault(false)
                 .WithDescription("Set to use tool to import rather than export");
 
-            parser.Setup<string>('p', "path")
+            parser.Setup<string>('o', "path")
                 .Callback(v => Config.WorkingDirectory = v)
                 .SetDefault(Environment.CurrentDirectory)
                 .WithDescription("The path to export / import files to/from");
 
-            parser.Setup<List<string>>('m', "modules")
+            parser.Setup<List<string>>('m')
                 .Callback(v => Config.Modules = v.ToArray())
                 .Required()
                 .WithDescription("The ampla modules to export from the project");
 
             // Time Properties
 
-            parser.Setup<string>('s', "start")
+            parser.Setup<string>("start")
                 .Callback(v =>
                 {
                     var dateTime = Convert.ToDateTime(v);
@@ -118,7 +117,7 @@ namespace RapidImpexConsole
                 })
                 .WithDescription("LOCAL Start Time to export data from. Only used during Export.");
 
-            parser.Setup<string>('S', "utcStart")
+            parser.Setup<string>("utcStart")
                 .Callback(v =>
                 {
                     var dateTime = Convert.ToDateTime(v);
@@ -126,7 +125,7 @@ namespace RapidImpexConsole
                 })
                 .WithDescription("UTC Start Time to export data from. Only used during Export.");
 
-            parser.Setup<string>('e', "end")
+            parser.Setup<string>("end")
                 .Callback(v =>
                 {
                     var dateTime = Convert.ToDateTime(v);
@@ -134,7 +133,7 @@ namespace RapidImpexConsole
                 })
                 .WithDescription("LOCAL End Time to export data to. Only used during Export.");
 
-            parser.Setup<string>('E', "utcEnd")
+            parser.Setup<string>("utcEnd")
                 .Callback(v =>
                 {
                     var dateTime = Convert.ToDateTime(v);
@@ -143,7 +142,7 @@ namespace RapidImpexConsole
                 .WithDescription("UTC Start Time to export data from. Only used during Export.");
 
             // Setup help
-            parser.SetupHelp("help", "h");
+            parser.SetupHelp("help");
 
             return parser;
         }

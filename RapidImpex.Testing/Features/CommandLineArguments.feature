@@ -4,11 +4,11 @@ Scenario: Simple Authentication using Http for Downtime module
 	Given that I have the following command line arguments:
 		| Arguments           |
 		| --useHttp           |
-		| -user="ampla"       |
-		| -password="password"   |
+		| -user=ampla       |
+		| -password=password   |
 		| --simple            |
-		| -start="2016-02-01" |
-		| -end="2016-02-22"   |
+		| -start=2016-02-01 |
+		| -end=2016-02-22   |
 		| --Downtime          |
 	When I parse the arguments
 	Then UseHttp is 'true'
@@ -25,8 +25,8 @@ Scenario: Simple Authentication using Http for Downtime module
 Scenario: Simple Authentication using TCP for Knowledge and Production
 	Given that I have the following command line arguments:
 		| Arguments                     |
-		| -start="2016-02-01"           |
-		| -endUtc="2016-02-22 12:34:56" |
+		| -start=2016-02-01           |
+		| -endUtc=2016-02-22 12:34:56 |
 		| --Knowledge                   |
 		| --Production                  |
 	When I parse the arguments
@@ -44,7 +44,7 @@ Scenario: Import with Integrated Authentication using TCP for Quality
 	Given that I have the following command line arguments:
 		| Arguments             |
 		| --import              |
-		| -path="c:\temp\files" |
+		| -path=c:\temp\files |
 		| --Quality             |
 	When I parse the arguments
 	Then UseHttp is 'false'

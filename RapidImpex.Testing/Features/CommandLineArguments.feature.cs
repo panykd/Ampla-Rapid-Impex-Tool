@@ -76,15 +76,15 @@ this.ScenarioSetup(scenarioInfo);
             table1.AddRow(new string[] {
                         "--useHttp"});
             table1.AddRow(new string[] {
-                        "-user=\"ampla\""});
+                        "-user=ampla"});
             table1.AddRow(new string[] {
-                        "-password=\"password\""});
+                        "-password=password"});
             table1.AddRow(new string[] {
                         "--simple"});
             table1.AddRow(new string[] {
-                        "-start=\"2016-02-01\""});
+                        "-start=2016-02-01"});
             table1.AddRow(new string[] {
-                        "-end=\"2016-02-22\""});
+                        "-end=2016-02-22"});
             table1.AddRow(new string[] {
                         "--Downtime"});
 #line 4
@@ -127,9 +127,9 @@ this.ScenarioSetup(scenarioInfo);
             TechTalk.SpecFlow.Table table3 = new TechTalk.SpecFlow.Table(new string[] {
                         "Arguments"});
             table3.AddRow(new string[] {
-                        "-start=\"2016-02-01\""});
+                        "-start=2016-02-01"});
             table3.AddRow(new string[] {
-                        "-endUtc=\"2016-02-22 12:34:56\""});
+                        "-endUtc=2016-02-22 12:34:56"});
             table3.AddRow(new string[] {
                         "--Knowledge"});
             table3.AddRow(new string[] {
@@ -174,7 +174,7 @@ this.ScenarioSetup(scenarioInfo);
             table5.AddRow(new string[] {
                         "--import"});
             table5.AddRow(new string[] {
-                        "-path=\"c:\\temp\\files\""});
+                        "-path=c:\\temp\\files"});
             table5.AddRow(new string[] {
                         "--Quality"});
 #line 44

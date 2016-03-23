@@ -15,11 +15,11 @@ namespace RapidImpex.Data
             _instance = instance;
         }
 
-        public IEnumerable<ReportingPointRecord> Read(string inputPath, ReportingPoint reportingPoint)
+        public IEnumerable<ReportingPointRecord> Read(string inputPath)
         {
             _locker.EnterReadLock();
 
-            var results = _instance.Read(inputPath, reportingPoint);
+            var results = _instance.Read(inputPath);
 
             _locker.ExitReadLock();
 

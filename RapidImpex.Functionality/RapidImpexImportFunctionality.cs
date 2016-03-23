@@ -32,29 +32,13 @@ namespace RapidImpex.Functionality
 
         public override void Execute()
         {
-            var records = ImportData(Config.WorkingDirectory).ToArray();
+            var records = _readWriteStrategy.Read(Config.WorkingDirectory).ToArray();
 
             _amplaCommandService.SubmitRecords(records);
             
             _amplaCommandService.DeleteRecords(records.Where(x => x.IsDeleted));
 
             _amplaCommandService.ConfirmRecords(records.Where(x => x.IsConfirmed));
-        }
-
-        private List<ReportingPointRecord> ImportData(string importPath)
-        {
-            var modules = Config.Modules.Select(x => x.AsAmplaModule());
-
-            var reportingPoints = _amplaQueryService.GetHeirarchyReportingPointsFor(modules);
-
-            var records = new List<ReportingPointRecord>();
-
-            foreach (var reportingPoint in reportingPoints)
-            {
-                records.AddRange(_readWriteStrategy.Read(importPath, reportingPoint).ToArray());
-            }
-
-            return records;
         }
     }
 }

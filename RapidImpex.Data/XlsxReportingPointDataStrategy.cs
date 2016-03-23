@@ -4,11 +4,14 @@ using System.IO;
 using System.Linq;
 using OfficeOpenXml;
 using RapidImpex.Models;
+using Serilog;
 
 namespace RapidImpex.Data
 {
     public class XlsxReportingPointDataStrategy : IReportingPointDataReadWriteStrategy
     {
+        public ILogger Logger { get; set; }
+
         const int dataStartRow = 10;
         const int dataStartCol = 1;
 
@@ -43,7 +46,9 @@ namespace RapidImpex.Data
 
                 if (worksheet == null)
                 {
-                    throw new NotImplementedException();
+                    // Worksheet doesn't exist
+                    Logger.Debug("Unable to find data for {0} point '{1}' in file '{2}'", reportingPoint.Module, reportingPoint.FullName, fileName);
+                    return new ReportingPointRecord[0];
                 }
 
                 var fields = reportingPoint.Fields.Values;
@@ -102,14 +107,14 @@ namespace RapidImpex.Data
             return records;
         }
 
-        static T ReadAndSetIsEmpty<T>(string value, ref bool isEmpty)
+        T ReadAndSetIsEmpty<T>(string value, ref bool isEmpty)
         {
             var returnValue = ReadAndSetIsEmpty(value, typeof(T), ref isEmpty);
 
             return returnValue == null ? default(T) : (T)returnValue;
         }
 
-        static object ReadAndSetIsEmpty(string value, Type valueType, ref bool isEmpty)
+        object ReadAndSetIsEmpty(string value, Type valueType, ref bool isEmpty)
         {
             if (string.IsNullOrWhiteSpace(value))
             {
@@ -133,7 +138,10 @@ namespace RapidImpex.Data
                     return intvalue != 0;
                 }
 
-                throw new NotImplementedException();
+                // Throw an exception
+                var exception = new ArgumentException("Unexpected Value", "value");
+                Logger.Fatal(exception, "Unable to interpret '{0}' as a boolean value", value);
+                throw exception;
             }
 
             if (valueType == typeof(DateTime))
@@ -226,11 +234,10 @@ namespace RapidImpex.Data
                             }
                             else
                             {
-                                throw new NotImplementedException();
+                                throw new NotImplementedException(string.Format("Unable to workout correct name for field '{0}'", kvp.Key));
                             }
 
-                            worksheet.Cells[currentRow, dataStartCol + 3 + fieldColumn].Value =
-                                Convert.ToString(kvp.Value);
+                            worksheet.Cells[currentRow, dataStartCol + 3 + fieldColumn].Value = Convert.ToString(kvp.Value);
                         }
 
                         currentRow++;

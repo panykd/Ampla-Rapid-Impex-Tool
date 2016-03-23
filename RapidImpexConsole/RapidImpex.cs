@@ -1,7 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Text.RegularExpressions;
 using Autofac.Features.Indexed;
 using Fclp;
+using RapidImpex.Ampla;
+using RapidImpex.Ampla.AmplaData200806;
 using RapidImpex.Functionality;
 using RapidImpex.Models;
 using Serilog;
@@ -14,8 +19,6 @@ namespace RapidImpexConsole
 
         private readonly IIndex<string, Func<RapidImpexConfiguration, IRapidImpexFunctionality>> _functionalityFactory;
 
-        private static readonly RapidImpexConfiguration Config = new RapidImpexConfiguration();
-
         public RapidImpex(IIndex<string, Func<RapidImpexConfiguration, IRapidImpexFunctionality>> functionalityFactory)
         {
             _functionalityFactory = functionalityFactory;
@@ -23,29 +26,15 @@ namespace RapidImpexConsole
 
         public void Run(string[] args)
         {
-            var parser = BootstrapConfigurationParser(args);
+            var parser = new MyCommandLineParser();
 
-            var result = parser.Parse(args);
+            RapidImpexConfiguration config;
+            var result = parser.Parse(args, out config);
 
-            if (result.HelpCalled || result.EmptyArgs)
-            {
-                Console.WriteLine();
-                Console.WriteLine("'Rapid Impex' is a lightweight, generic, and fast Console-based Ampla data importer and exporter.");
-                Console.WriteLine();
-                Console.WriteLine("Usage:");
-                Console.WriteLine(parser.OptionFormatter.Format(parser.Options));
-                return;
-            }
-
-            if (result.HasErrors)
-            {
-                Console.WriteLine(result.ErrorText);
-                return;
-            }
 
             Func<RapidImpexConfiguration, IRapidImpexFunctionality> funcFac;
 
-            if (Config.IsImport)
+            if (config.IsImport)
             {
                 Logger.Information("Loading 'Import' Functionality");
 
@@ -58,93 +47,94 @@ namespace RapidImpexConsole
                 funcFac = _functionalityFactory["export"];
             }
 
-            var functionality = funcFac(Config);
+            var functionality = funcFac(config);
 
             Logger.Debug("Initializing");
-            functionality.Initialize(Config);
+            functionality.Initialize(config);
 
             Logger.Debug("Executing");
             functionality.Execute();
         }
+    }
 
-        static FluentCommandLineParser BootstrapConfigurationParser(string[] args)
+    public class MyCommandLineParser
+    {
+        public ILogger Logger { get; set; }
+
+        public bool Parse(string[] args, out RapidImpexConfiguration configuration)
         {
-            var parser = new FluentCommandLineParser();
+            var flagRegex = new Regex("--(?'flag'.+)", RegexOptions.Compiled);
+            var argumentRegex = new Regex("-(?'arg'.+)=(?'open'\")(?'value'.+)(?'close-open'\")", RegexOptions.Compiled);
 
-            // Transport Options
+            configuration = new RapidImpexConfiguration();
 
-            parser.Setup<bool>("useHttp")
-                .Callback(v => Config.UseBasicHttp = v)
-                .SetDefault(false)
-                .WithDescription("Use Basic HTTP instead of TCP");
+            try
+            {
+                // Flags
+                var flags = (from f in args
+                    let m = flagRegex.Match(f)
+                    where m.Success
+                    select m.Groups["flag"].Value).ToArray();
 
-            parser.Setup<string>('u', "user")
-                .Callback(v => Config.Username = v)
-                .WithDescription("Simple Security Username");
+                // Arguments
+                var argValues = (from a in args
+                    let m = argumentRegex.Match(a)
+                    where m.Success
+                    select new KeyValuePair<string, string>(m.Groups["arg"].Value, m.Groups["value"].Value))
+                    .ToDictionary(k => k.Key, v => v.Value);
 
-            parser.Setup<string>('p', "password")
-                .Callback(v => Config.Password = v)
-                .WithDescription("Simple Security Password");
 
-            parser.Setup<bool>("sa")
-                .Callback(v => Config.UseSimpleAuthentication = v)
-                .SetDefault(false)
-                .WithDescription("Use Simple Authentication instead of Integrated Windows Authentication");
+                configuration.UseBasicHttp = flags.Contains("useHttp");
+                configuration.UseSimpleAuthentication = flags.Contains("simple");
+                configuration.IsImport = flags.Contains("import");
 
-            // Other Settings
-            parser.Setup<bool>("import")
-                .Callback(v => Config.IsImport = v)
-                .SetDefault(false)
-                .WithDescription("Set to use tool to import rather than export");
+                configuration.WorkingDirectory = argValues.ContainsKey("path")
+                    ? argValues["path"]
+                    : Environment.CurrentDirectory;
+                configuration.Username = argValues.ContainsKey("user") ? argValues["user"] : null;
+                configuration.Password = argValues.ContainsKey("password") ? argValues["password"] : null;
+                ;
 
-            parser.Setup<string>('o', "path")
-                .Callback(v => Config.WorkingDirectory = v)
-                .SetDefault(Environment.CurrentDirectory)
-                .WithDescription("The path to export / import files to/from");
+                //Extract Modules
+                var allModules = Enum.GetNames(typeof (AmplaModules));
+                var modules = flags.Where(flag => allModules.Any(x => x == flag)).ToList();
 
-            parser.Setup<List<string>>('m')
-                .Callback(v => Config.Modules = v.ToArray())
-                .Required()
-                .WithDescription("The ampla modules to export from the project");
+                configuration.Modules = modules.ToArray();
 
-            // Time Properties
-
-            parser.Setup<string>("start")
-                .Callback(v =>
+                // Set Start Time
+                if (argValues.ContainsKey("start"))
                 {
-                    var dateTime = Convert.ToDateTime(v);
-                    Config.StartTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Local);
-                })
-                .WithDescription("LOCAL Start Time to export data from. Only used during Export.");
-
-            parser.Setup<string>("utcStart")
-                .Callback(v =>
+                    var value = argValues["start"];
+                    configuration.StartTime = DateTime.SpecifyKind(DateTime.Parse(value, CultureInfo.InvariantCulture),
+                        DateTimeKind.Local);
+                }
+                else if (argValues.ContainsKey("startUtc"))
                 {
-                    var dateTime = Convert.ToDateTime(v);
-                    Config.StartTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
-                })
-                .WithDescription("UTC Start Time to export data from. Only used during Export.");
+                    var value = argValues["startUtc"];
+                    configuration.StartTime = DateTime.SpecifyKind(DateTime.Parse(value, CultureInfo.InvariantCulture),
+                        DateTimeKind.Utc);
+                }
 
-            parser.Setup<string>("end")
-                .Callback(v =>
+                if (argValues.ContainsKey("end"))
                 {
-                    var dateTime = Convert.ToDateTime(v);
-                    Config.EndTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Local);
-                })
-                .WithDescription("LOCAL End Time to export data to. Only used during Export.");
-
-            parser.Setup<string>("utcEnd")
-                .Callback(v =>
+                    var value = argValues["end"];
+                    configuration.EndTime = DateTime.SpecifyKind(DateTime.Parse(value, CultureInfo.InvariantCulture),
+                        DateTimeKind.Local);
+                }
+                else if (argValues.ContainsKey("endUtc"))
                 {
-                    var dateTime = Convert.ToDateTime(v);
-                    Config.EndTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
-                })
-                .WithDescription("UTC Start Time to export data from. Only used during Export.");
+                    var value = argValues["endUtc"];
+                    configuration.EndTime = DateTime.SpecifyKind(DateTime.Parse(value, CultureInfo.InvariantCulture),
+                        DateTimeKind.Utc);
+                }
 
-            // Setup help
-            parser.SetupHelp("help");
-
-            return parser;
+                return true;
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, "An error has parsing command line arguments");
+                return false;
+            }
         }
     }
 }

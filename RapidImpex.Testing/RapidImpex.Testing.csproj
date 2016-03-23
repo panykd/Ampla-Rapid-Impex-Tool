@@ -61,6 +61,12 @@
       <DependentUpon>AmplaModuleTranslation.feature</DependentUpon>
     </Compile>
     <Compile Include="Features\AmplaModuleTranslationSteps.cs" />
+    <Compile Include="Features\CommandLineArguments.feature.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CommandLineArguments.feature</DependentUpon>
+    </Compile>
+    <Compile Include="Features\CommandLineArgumentsSteps.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -69,12 +75,24 @@
       <Generator>SpecFlowSingleFileGenerator</Generator>
       <LastGenOutput>AmplaModuleTranslation.feature.cs</LastGenOutput>
     </None>
+    <None Include="Features\CommandLineArguments.feature">
+      <Generator>SpecFlowSingleFileGenerator</Generator>
+      <LastGenOutput>CommandLineArguments.feature.cs</LastGenOutput>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RapidImpex.Ampla\RapidImpex.Ampla.csproj">
       <Project>{777cea1b-338d-43f3-bf1f-ffd92826fbfb}</Project>
       <Name>RapidImpex.Ampla</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RapidImpex.Models\RapidImpex.Models.csproj">
+      <Project>{61FC2568-EBB0-4E48-9054-A34463C84997}</Project>
+      <Name>RapidImpex.Models</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RapidImpexConsole\RapidImpexConsole.csproj">
+      <Project>{8e0cd5a5-9e7a-48b9-b676-8add4505e244}</Project>
+      <Name>RapidImpexConsole</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

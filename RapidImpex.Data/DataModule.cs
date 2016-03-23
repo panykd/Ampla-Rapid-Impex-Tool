@@ -8,7 +8,9 @@ namespace RapidImpex.Data
         {
             builder.RegisterDecorator<IReportingPointDataReadWriteStrategy>((c, inner) =>
                 new ThreadLockedReportingPointDataReadWriteStrategyAdapter(inner),
-                "xlsx");
+                "xlsx")
+                .As<IReportingPointDataReadWriteStrategy>()
+                .SingleInstance();
 
             builder.RegisterType<XlsxReportingPointDataStrategy>()
                 .Named<IReportingPointDataReadWriteStrategy>("xlsx")

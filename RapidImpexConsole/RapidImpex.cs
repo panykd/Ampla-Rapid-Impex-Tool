@@ -64,7 +64,7 @@ namespace RapidImpexConsole
         public bool Parse(string[] args, out RapidImpexConfiguration configuration)
         {
             var flagRegex = new Regex("--(?'flag'.+)", RegexOptions.Compiled);
-            var argumentRegex = new Regex("-(?'arg'.+)=(?'open'\")(?'value'.+)(?'close-open'\")", RegexOptions.Compiled);
+            var argumentRegex = new Regex("-(?'arg'.+)=(?'value'.+)", RegexOptions.Compiled);
 
             configuration = new RapidImpexConfiguration();
 

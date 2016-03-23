@@ -40,7 +40,7 @@ namespace RapidImpex.Testing.Features
         
         [Then(@"Password is '(.*)'")]
         public void ThenPasswordIs(string password)
-        {
+        {   
             _configuration.Password.ShouldBe(password);
         }
         

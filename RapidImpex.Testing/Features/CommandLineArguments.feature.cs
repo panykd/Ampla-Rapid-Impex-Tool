@@ -86,7 +86,7 @@ this.ScenarioSetup(scenarioInfo);
             table1.AddRow(new string[] {
                         "-end=2016-02-22"});
             table1.AddRow(new string[] {
-                        "--Downtime"});
+                        "-module=Downtime"});
 #line 4
  testRunner.Given("that I have the following command line arguments:", ((string)(null)), table1, "Given ");
 #line 13
@@ -105,13 +105,8 @@ this.ScenarioSetup(scenarioInfo);
  testRunner.And("EndTime is \'2016-02-22 00:00:00\' in \'Local\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line 20
  testRunner.And("Import is \'false\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table2 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Modules"});
-            table2.AddRow(new string[] {
-                        "Downtime"});
 #line 21
- testRunner.And("Modules is:", ((string)(null)), table2, "And ");
+ testRunner.And("Module is \'Downtime\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
         }
@@ -121,42 +116,33 @@ this.ScenarioSetup(scenarioInfo);
         public virtual void SimpleAuthenticationUsingTCPForKnowledgeAndProduction()
         {
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Simple Authentication using TCP for Knowledge and Production", ((string[])(null)));
-#line 25
+#line 23
 this.ScenarioSetup(scenarioInfo);
 #line hidden
-            TechTalk.SpecFlow.Table table3 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table2 = new TechTalk.SpecFlow.Table(new string[] {
                         "Arguments"});
-            table3.AddRow(new string[] {
+            table2.AddRow(new string[] {
                         "-start=2016-02-01"});
-            table3.AddRow(new string[] {
+            table2.AddRow(new string[] {
                         "-endUtc=2016-02-22 12:34:56"});
-            table3.AddRow(new string[] {
-                        "--Knowledge"});
-            table3.AddRow(new string[] {
-                        "--Production"});
-#line 26
- testRunner.Given("that I have the following command line arguments:", ((string)(null)), table3, "Given ");
-#line 32
+            table2.AddRow(new string[] {
+                        "-module=Production"});
+#line 24
+ testRunner.Given("that I have the following command line arguments:", ((string)(null)), table2, "Given ");
+#line 29
  testRunner.When("I parse the arguments", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line 33
+#line 30
  testRunner.Then("UseHttp is \'false\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line 34
+#line 31
  testRunner.And("Simple Authentication is \'false\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line 35
+#line 32
  testRunner.And("StartTime is \'2016-02-01 00:00:00\' in \'Local\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line 36
+#line 33
  testRunner.And("EndTime is \'2016-02-22 12:34:56\' in \'Utc\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line 37
+#line 34
  testRunner.And("Import is \'false\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table4 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Modules"});
-            table4.AddRow(new string[] {
-                        "Knowledge"});
-            table4.AddRow(new string[] {
-                        "Production"});
-#line 38
- testRunner.And("Modules is:", ((string)(null)), table4, "And ");
+#line 35
+ testRunner.And("Module is \'Production\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
         }
@@ -166,36 +152,35 @@ this.ScenarioSetup(scenarioInfo);
         public virtual void ImportWithIntegratedAuthenticationUsingTCPForQuality()
         {
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Import with Integrated Authentication using TCP for Quality", ((string[])(null)));
-#line 43
+#line 37
 this.ScenarioSetup(scenarioInfo);
 #line hidden
-            TechTalk.SpecFlow.Table table5 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table3 = new TechTalk.SpecFlow.Table(new string[] {
                         "Arguments"});
-            table5.AddRow(new string[] {
+            table3.AddRow(new string[] {
                         "--import"});
-            table5.AddRow(new string[] {
+            table3.AddRow(new string[] {
                         "-path=c:\\temp\\files"});
-            table5.AddRow(new string[] {
-                        "--Quality"});
+            table3.AddRow(new string[] {
+                        "-file=output.xlsx"});
+            table3.AddRow(new string[] {
+                        "-module=Knowledge"});
+#line 38
+ testRunner.Given("that I have the following command line arguments:", ((string)(null)), table3, "Given ");
 #line 44
- testRunner.Given("that I have the following command line arguments:", ((string)(null)), table5, "Given ");
-#line 49
  testRunner.When("I parse the arguments", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line 50
+#line 45
  testRunner.Then("UseHttp is \'false\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line 51
+#line 46
  testRunner.And("Simple Authentication is \'false\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line 52
+#line 47
  testRunner.And("Path is \'c:\\temp\\files\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line 53
+#line 48
+ testRunner.And("File is \'output.xlsx\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 49
  testRunner.And("Import is \'true\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table6 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Modules"});
-            table6.AddRow(new string[] {
-                        "Quality"});
-#line 54
- testRunner.And("Modules is:", ((string)(null)), table6, "And ");
+#line 50
+ testRunner.And("Module is \'Knowledge\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
         }

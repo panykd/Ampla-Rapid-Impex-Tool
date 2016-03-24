@@ -72,11 +72,24 @@ namespace RapidImpex.Testing.Features
             _configuration.Modules.ShouldBe(expectedModules);
         }
 
+        [Then(@"Module is '(.*)'")]
+        public void ThenModuleIs(string module)
+        {
+            _configuration.Module.ShouldBe(module);
+        }
+
         [Then(@"Path is '(.*)'")]
         public void ThenPathIs(string path)
         {
             _configuration.WorkingDirectory.ShouldBe(path);
         }
+
+        [Then(@"File is '(.*)'")]
+        public void ThenFileIs(string file)
+        {
+            _configuration.File.ShouldBe(file);
+        }
+
 
         [Then(@"Import is '(.*)'")]
         public void ThenImportIs(bool value)

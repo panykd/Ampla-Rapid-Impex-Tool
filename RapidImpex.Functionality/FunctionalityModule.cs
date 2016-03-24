@@ -11,11 +11,11 @@ namespace RapidImpex.Functionality
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<RapidImpexImportFunctionality>()
+            builder.RegisterType<RapidImpexFileImportFunctionality>()
                 .Named<IRapidImpexFunctionality>("import")
                 .SingleInstance();
 
-            builder.RegisterType<RapidImpexExportFunctionality>()
+            builder.RegisterType<RapidImpexFileExportFunctionality>()
                 .Named<IRapidImpexFunctionality>("export")
                 .SingleInstance();
         }

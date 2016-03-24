@@ -9,7 +9,7 @@ using RapidImpex.Models;
 
 namespace RapidImpex.Functionality
 {
-    public class RapidImpexImportFunctionality : RapidImpexImportFunctionalityBase
+    public class RapidImpexImportFunctionality : RapidImpexFunctionalityBase
     {
         private readonly AmplaQueryService _amplaQueryService;
         private readonly AmplaCommandService _amplaCommandService;

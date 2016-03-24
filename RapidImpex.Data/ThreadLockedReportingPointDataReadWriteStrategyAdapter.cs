@@ -26,11 +26,31 @@ namespace RapidImpex.Data
             return results;
         }
 
+        public Dictionary<ReportingPoint, IEnumerable<ReportingPointRecord>> ReadFromFile(string inputPath)
+        {
+            _locker.EnterReadLock();
+
+            var results = _instance.ReadFromFile(inputPath);
+
+            _locker.ExitReadLock();
+
+            return results;
+        }
+
         public void Write(string outputPath, IEnumerable<ReportingPointRecord> records)
         {
             _locker.EnterWriteLock();
 
             _instance.Write(outputPath, records);
+
+            _locker.ExitWriteLock();
+        }
+
+        public void WriteToFile(string filePath, string worksheetName, ReportingPoint reportingPoint, IEnumerable<ReportingPointRecord> records)
+        {
+            _locker.EnterWriteLock();
+
+            _instance.WriteToFile(filePath, worksheetName, reportingPoint, records);
 
             _locker.ExitWriteLock();
         }

@@ -37,83 +37,96 @@ namespace RapidImpex.Data
             var directoryInfo = new DirectoryInfo(inputPath);
             var fileInfos = directoryInfo.GetFiles("*.xlsx");
 
-            var reportingPoints = _amplaQueryService
-                .GetHeirarchyReportingPointsFor(Enum.GetValues(typeof (AmplaModules)).Cast<AmplaModules>())
-                .ToDictionary(k => k.FullName, v => v);
-
             foreach (var fileInfo in fileInfos)
             {
-                Logger.Information("Importing file '{0}'", fileInfo.FullName);
-
-                using (var package = new ExcelPackage(fileInfo))
-                {
-                    var workbook = package.Workbook;
-                    var worksheets = workbook.Worksheets;
-
-                    foreach (var worksheet in worksheets)
-                    {
-                        Logger.Information("Importing Sheet '{0}'", worksheet.Name);
-
-                        // Reporting Point
-                        var fullReportingPointName = worksheet.Cells[summaryStartRow + 1, summaryStartCol + 1].Text;
-                        var reportingPoint = reportingPoints[fullReportingPointName]; 
-
-                        var fields = reportingPoint.Fields.Values;
-
-                        var indexToFieldLookup = new ReportingPointField[fields.Count()];
-
-                        // Read header row
-                        for (var i = 0; i < fields.Count(); i++)
-                        {
-                            var fieldName = worksheet.Cells[dataStartRow + 0, dataStartCol + 3 + i].Text;
-
-                            var field = fields.FirstOrDefault(x => x.Id == fieldName) ??
-                                        fields.First(x => x.DisplayName == fieldName);
-
-                            indexToFieldLookup[i] = field;
-                        }
-
-                        // Read Data
-                        int currentRow = dataStartRow + 1;
-
-                        while (currentRow < ExcelPackage.MaxRows)
-                        {
-                            var record = new ReportingPointRecord()
-                            {
-                                ReportingPoint = reportingPoint,
-                                Values = new Dictionary<string, object>()
-                            };
-
-                            bool rowEmpty = true;
-
-                            var idValue = worksheet.Cells[currentRow, dataStartCol + 0].Text;
-                            var confirmedValue = worksheet.Cells[currentRow, dataStartCol + 1].Text;
-                            var deletedValue = worksheet.Cells[currentRow, dataStartCol + 2].Text;
-
-                            record.Id = ReadAndSetIsEmpty<long>(idValue, ref rowEmpty);
-                            record.IsConfirmed = ReadAndSetIsEmpty<bool>(confirmedValue, ref rowEmpty);
-                            record.IsDeleted = ReadAndSetIsEmpty<bool>(deletedValue, ref rowEmpty);
-
-                            for (var i = 0; i < indexToFieldLookup.Count(); i++)
-                            {
-                                var field = indexToFieldLookup[i];
-                                var fieldValue = worksheet.Cells[currentRow, dataStartCol + 3 + i].Text;
-                                record.Values[field.Id] = ReadAndSetIsEmpty(fieldValue, field.FieldType, ref rowEmpty);
-                            }
-
-                            if (rowEmpty)
-                            {
-                                break;
-                            }
-
-                            records.Add(record);
-                            currentRow++;
-                        }
-                    }
-                }
+                records.AddRange(ReadFromFile(fileInfo.FullName).Values.SelectMany(x => x.ToArray()));
             }
 
             return records;
+        }
+
+        public Dictionary<ReportingPoint, IEnumerable<ReportingPointRecord>> ReadFromFile(string inputPath)
+        {
+            var fileInfo = new FileInfo(inputPath);
+
+            Logger.Information("Importing file '{0}'", fileInfo.FullName);
+
+            var result = new Dictionary<ReportingPoint, IEnumerable<ReportingPointRecord>>();
+
+            using (var package = new ExcelPackage(fileInfo))
+            {
+                var workbook = package.Workbook;
+                var worksheets = workbook.Worksheets;
+
+                foreach (var worksheet in worksheets)
+                {
+                    Logger.Information("Importing Sheet '{0}'", worksheet.Name);
+
+                    // Reporting Point
+                    var module = worksheet.Cells[summaryStartRow + 0, summaryStartCol + 1].Text;
+                    var location = worksheet.Cells[summaryStartRow + 1, summaryStartCol + 1].Text;
+
+                    var reportingPoint = _amplaQueryService.GetReportingPoint(location, module);
+
+                    var records = new List<ReportingPointRecord>();
+
+                    var fields = reportingPoint.Fields.Values;
+
+                    var indexToFieldLookup = new ReportingPointField[fields.Count()];
+
+                    // Read header row
+                    for (var i = 0; i < fields.Count(); i++)
+                    {
+                        var fieldName = worksheet.Cells[dataStartRow + 0, dataStartCol + 3 + i].Text;
+
+                        var field = fields.FirstOrDefault(x => x.Id == fieldName) ??
+                                    fields.First(x => x.DisplayName == fieldName);
+
+                        indexToFieldLookup[i] = field;
+                    }
+
+                    // Read Data
+                    int currentRow = dataStartRow + 1;
+
+                    while (currentRow < ExcelPackage.MaxRows)
+                    {
+                        var record = new ReportingPointRecord()
+                        {
+                            ReportingPoint = reportingPoint,
+                            Values = new Dictionary<string, object>()
+                        };
+
+                        bool rowEmpty = true;
+
+                        var idValue = worksheet.Cells[currentRow, dataStartCol + 0].Text;
+                        var confirmedValue = worksheet.Cells[currentRow, dataStartCol + 1].Text;
+                        var deletedValue = worksheet.Cells[currentRow, dataStartCol + 2].Text;
+
+                        record.Id = ReadAndSetIsEmpty<long>(idValue, ref rowEmpty);
+                        record.IsConfirmed = ReadAndSetIsEmpty<bool>(confirmedValue, ref rowEmpty);
+                        record.IsDeleted = ReadAndSetIsEmpty<bool>(deletedValue, ref rowEmpty);
+
+                        for (var i = 0; i < indexToFieldLookup.Count(); i++)
+                        {
+                            var field = indexToFieldLookup[i];
+                            var fieldValue = worksheet.Cells[currentRow, dataStartCol + 3 + i].Text;
+                            record.Values[field.Id] = ReadAndSetIsEmpty(fieldValue, field.FieldType, ref rowEmpty);
+                        }
+
+                        if (rowEmpty)
+                        {
+                            break;
+                        }
+
+                        records.Add(record);
+                        currentRow++;
+                    }
+
+                    result[reportingPoint] = records;
+                }
+            }
+
+            return result;
         }
 
         T ReadAndSetIsEmpty<T>(string value, ref bool isEmpty)
@@ -176,84 +189,91 @@ namespace RapidImpex.Data
 
                 // open the file
                 var filePath = Path.ChangeExtension(Path.Combine(outputPath, fileName), ".xlsx");
-                var fileInfo = new FileInfo(filePath);
+                
+                WriteToFile(filePath, worksheetName, reportingPoint, rpd);
+            }
+        }
 
-                using (var package = new ExcelPackage(fileInfo))
+        public void WriteToFile(string filePath, string worksheetName, ReportingPoint reportingPoint, IEnumerable<ReportingPointRecord> records)
+        {
+            var fileInfo = new FileInfo(filePath);
+
+            using (var package = new ExcelPackage(fileInfo))
+            {
+                var workbook = package.Workbook;
+                var worksheets = workbook.Worksheets;
+
+                if (worksheets.Any(x => x.Name == worksheetName))
                 {
-                    var workbook = package.Workbook;
-                    var worksheets = workbook.Worksheets;
+                    worksheets.Delete(worksheetName);
+                }
 
-                    if (worksheets.Any(x => x.Name == worksheetName))
+                var worksheet = worksheets.Add(worksheetName);
+
+                // Summary
+
+                worksheet.Cells[summaryStartRow + 0, summaryStartCol + 0].Value = "Module";
+                worksheet.Cells[summaryStartRow + 0, summaryStartCol + 1].Value = reportingPoint.Module;
+
+                worksheet.Cells[summaryStartRow + 1, summaryStartCol + 0].Value = "Reporting Point";
+                worksheet.Cells[summaryStartRow + 1, summaryStartCol + 1].Value = reportingPoint.FullName;
+
+                // Data
+
+
+                // Header Row
+                worksheet.Cells[dataStartRow + 0, dataStartCol + 0].Value = "Id";
+                worksheet.Cells[dataStartRow + 0, dataStartCol + 1].Value = "Confirmed";
+                worksheet.Cells[dataStartRow + 0, dataStartCol + 2].Value = "Deleted";
+
+                // Prepare the lookups while the file isn't open
+                var idColumnLookup = new Dictionary<string, int>();
+                var displayNameColumnLookup = new Dictionary<string, int>();
+                // Select the headers out into and array so that it doesnt change over time
+
+                var fields = reportingPoint.Fields.Values.ToArray();
+
+                for (var i = 0; i < fields.Count(); i++)
+                {
+                    var field = fields[i];
+
+                    idColumnLookup[field.Id] = i;
+                    displayNameColumnLookup[field.DisplayName] = i;
+
+                    worksheet.Cells[dataStartRow + 0, dataStartCol + 3 + i].Value = fields[i].DisplayName;
+                }
+
+                // Data Rows
+                int currentRow = dataStartRow + 1;
+                foreach (var record in records)
+                {
+                    worksheet.Cells[currentRow, dataStartCol + 0].Value = record.Id;
+                    worksheet.Cells[currentRow, dataStartCol + 1].Value = record.IsConfirmed;
+                    worksheet.Cells[currentRow, dataStartCol + 2].Value = record.IsDeleted;
+
+                    foreach (var kvp in record.Values)
                     {
-                        worksheets.Delete(worksheetName);
-                    }
+                        int fieldColumn;
 
-                    var worksheet = worksheets.Add(worksheetName);
-
-                    // Summary
-
-                    worksheet.Cells[summaryStartRow + 0, summaryStartCol + 0].Value = "Module";
-                    worksheet.Cells[summaryStartRow + 0, summaryStartCol + 1].Value = reportingPoint.Module;
-
-                    worksheet.Cells[summaryStartRow + 1, summaryStartCol + 0].Value = "Reporting Point";
-                    worksheet.Cells[summaryStartRow + 1, summaryStartCol + 1].Value = reportingPoint.FullName;
-
-                    // Data
-
-
-                    // Header Row
-                    worksheet.Cells[dataStartRow + 0, dataStartCol + 0].Value = "Id";
-                    worksheet.Cells[dataStartRow + 0, dataStartCol + 1].Value = "Confirmed";
-                    worksheet.Cells[dataStartRow + 0, dataStartCol + 2].Value = "Deleted";
-
-                    // Prepare the lookups while the file isn't open
-                    var idColumnLookup = new Dictionary<string, int>();
-                    var displayNameColumnLookup = new Dictionary<string, int>();
-                    // Select the headers out into and array so that it doesnt change over time
-
-                    var fields = reportingPoint.Fields.Values.ToArray();
-
-                    for (var i = 0; i < fields.Count(); i++)
-                    {
-                        var field = fields[i];
-
-                        idColumnLookup[field.Id] = i;
-                        displayNameColumnLookup[field.DisplayName] = i;
-
-                        worksheet.Cells[dataStartRow + 0, dataStartCol + 3 + i].Value = fields[i].DisplayName;
-                    }
-
-                    // Data Rows
-                    int currentRow = dataStartRow + 1;
-                    foreach (var record in rpd)
-                    {
-                        worksheet.Cells[currentRow, dataStartCol + 0].Value = record.Id;
-                        worksheet.Cells[currentRow, dataStartCol + 1].Value = record.IsConfirmed;
-                        worksheet.Cells[currentRow, dataStartCol + 2].Value = record.IsDeleted;
-
-                        foreach (var kvp in record.Values)
+                        if (idColumnLookup.TryGetValue(kvp.Key, out fieldColumn))
                         {
-                            int fieldColumn;
-
-                            if (idColumnLookup.TryGetValue(kvp.Key, out fieldColumn))
-                            {
-                            }
-                            else if (displayNameColumnLookup.TryGetValue(kvp.Key, out fieldColumn))
-                            {
-                            }
-                            else
-                            {
-                                throw new NotImplementedException(string.Format("Unable to workout correct name for field '{0}'", kvp.Key));
-                            }
-
-                            worksheet.Cells[currentRow, dataStartCol + 3 + fieldColumn].Value = Convert.ToString(kvp.Value);
+                        }
+                        else if (displayNameColumnLookup.TryGetValue(kvp.Key, out fieldColumn))
+                        {
+                        }
+                        else
+                        {
+                            throw new NotImplementedException(string.Format("Unable to workout correct name for field '{0}'",
+                                kvp.Key));
                         }
 
-                        currentRow++;
+                        worksheet.Cells[currentRow, dataStartCol + 3 + fieldColumn].Value = Convert.ToString(kvp.Value);
                     }
 
-                    package.Save();
+                    currentRow++;
                 }
+
+                package.Save();
             }
         }
     }

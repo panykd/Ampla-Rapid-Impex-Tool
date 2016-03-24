@@ -88,19 +88,14 @@ namespace RapidImpexConsole
                 configuration.UseSimpleAuthentication = flags.Contains("simple");
                 configuration.IsImport = flags.Contains("import");
 
-                configuration.WorkingDirectory = argValues.ContainsKey("path")
-                    ? argValues["path"]
-                    : Environment.CurrentDirectory;
+                configuration.WorkingDirectory = argValues.ContainsKey("path") ? argValues["path"] : Environment.CurrentDirectory;
                 configuration.Username = argValues.ContainsKey("user") ? argValues["user"] : null;
                 configuration.Password = argValues.ContainsKey("password") ? argValues["password"] : null;
-                ;
 
-                //Extract Modules
-                var allModules = Enum.GetNames(typeof (AmplaModules));
-                var modules = flags.Where(flag => allModules.Any(x => x == flag)).ToList();
-
-                configuration.Modules = modules.ToArray();
-
+                configuration.File = argValues.ContainsKey("file") ? argValues["file"] : null;
+                configuration.Location = argValues.ContainsKey("location") ? argValues["location"] : null;
+                configuration.Module = argValues.ContainsKey("module") ? argValues["module"] : null;
+                
                 // Set Start Time
                 if (argValues.ContainsKey("start"))
                 {

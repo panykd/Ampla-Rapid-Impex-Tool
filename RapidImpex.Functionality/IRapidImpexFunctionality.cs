@@ -9,7 +9,7 @@ namespace RapidImpex.Functionality
         void Execute();
     }
 
-    public abstract class RapidImpexImportFunctionalityBase : IRapidImpexFunctionality
+    public abstract class RapidImpexFunctionalityBase : IRapidImpexFunctionality
     {
         protected RapidImpexConfiguration Config;
 

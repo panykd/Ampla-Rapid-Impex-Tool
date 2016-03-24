@@ -71,6 +71,19 @@ namespace RapidImpex.Ampla
             return allReportingPoints;
         }
 
+        public ReportingPoint GetReportingPoint(string location, string module)
+        {
+            var reportingPoint = new ReportingPoint()
+            {
+                FullName = location,
+                Module = module                
+            };
+
+            reportingPoint.Fields = GetReportingPointFieldInformation(reportingPoint);
+
+            return reportingPoint;
+        }
+
         public Dictionary<string, ReportingPointField> GetReportingPointFieldInformation(ReportingPoint reportingPoint)
         {
             var _client = _clientFactory.GetClient();

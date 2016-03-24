@@ -97,5 +97,11 @@ namespace RapidImpex.Testing.Features
             _configuration.IsImport.ShouldBe(value);
         }
 
+        [Then(@"Location is '(.*)'")]
+        public void ThenLocationIs(string location)
+        {
+            _configuration.Location.ShouldBe(location);
+        }
+
     }
 }

@@ -127,22 +127,26 @@ this.ScenarioSetup(scenarioInfo);
                         "-endUtc=2016-02-22 12:34:56"});
             table2.AddRow(new string[] {
                         "-module=Production"});
+            table2.AddRow(new string[] {
+                        "-location=Site.Downtime"});
 #line 24
  testRunner.Given("that I have the following command line arguments:", ((string)(null)), table2, "Given ");
-#line 29
- testRunner.When("I parse the arguments", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line 30
- testRunner.Then("UseHttp is \'false\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+ testRunner.When("I parse the arguments", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line 31
- testRunner.And("Simple Authentication is \'false\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.Then("UseHttp is \'false\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line 32
- testRunner.And("StartTime is \'2016-02-01 00:00:00\' in \'Local\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("Simple Authentication is \'false\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line 33
- testRunner.And("EndTime is \'2016-02-22 12:34:56\' in \'Utc\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("StartTime is \'2016-02-01 00:00:00\' in \'Local\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line 34
- testRunner.And("Import is \'false\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("EndTime is \'2016-02-22 12:34:56\' in \'Utc\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line 35
+ testRunner.And("Import is \'false\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 36
  testRunner.And("Module is \'Production\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 37
+ testRunner.And("Location is \'Site.Downtime\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
         }
@@ -152,7 +156,7 @@ this.ScenarioSetup(scenarioInfo);
         public virtual void ImportWithIntegratedAuthenticationUsingTCPForQuality()
         {
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Import with Integrated Authentication using TCP for Quality", ((string[])(null)));
-#line 37
+#line 39
 this.ScenarioSetup(scenarioInfo);
 #line hidden
             TechTalk.SpecFlow.Table table3 = new TechTalk.SpecFlow.Table(new string[] {
@@ -165,21 +169,21 @@ this.ScenarioSetup(scenarioInfo);
                         "-file=output.xlsx"});
             table3.AddRow(new string[] {
                         "-module=Knowledge"});
-#line 38
+#line 40
  testRunner.Given("that I have the following command line arguments:", ((string)(null)), table3, "Given ");
-#line 44
- testRunner.When("I parse the arguments", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line 45
- testRunner.Then("UseHttp is \'false\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line 46
- testRunner.And("Simple Authentication is \'false\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.When("I parse the arguments", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line 47
- testRunner.And("Path is \'c:\\temp\\files\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.Then("UseHttp is \'false\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line 48
- testRunner.And("File is \'output.xlsx\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("Simple Authentication is \'false\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line 49
- testRunner.And("Import is \'true\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("Path is \'c:\\temp\\files\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line 50
+ testRunner.And("File is \'output.xlsx\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 51
+ testRunner.And("Import is \'true\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 52
  testRunner.And("Module is \'Knowledge\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();

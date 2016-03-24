@@ -22,10 +22,11 @@ Scenario: Simple Authentication using Http for Downtime module
 
 Scenario: Simple Authentication using TCP for Knowledge and Production
 	Given that I have the following command line arguments:
-		| Arguments                     |
+		| Arguments                   |
 		| -start=2016-02-01           |
 		| -endUtc=2016-02-22 12:34:56 |
-		| -module=Production                 |
+		| -module=Production          |
+		| -location=Site.Downtime     |
 	When I parse the arguments
 	Then UseHttp is 'false'
 	And Simple Authentication is 'false'
@@ -33,6 +34,7 @@ Scenario: Simple Authentication using TCP for Knowledge and Production
 	And EndTime is '2016-02-22 12:34:56' in 'Utc'
 	And Import is 'false'
 	And Module is 'Production'
+	And Location is 'Site.Downtime'
 
 Scenario: Import with Integrated Authentication using TCP for Quality
 	Given that I have the following command line arguments:

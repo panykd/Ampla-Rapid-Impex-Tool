@@ -46,6 +46,13 @@ namespace RapidImpex.Functionality
 
         private readonly AmplaCommandService _amplaCommandService;
 
+        public RapidImpexFileImportFunctionality(AmplaQueryService amplaQueryService, AmplaCommandService amplaCommandService, IReportingPointDataReadWriteStrategy readWriteStrategy)
+        {
+            _amplaQueryService = amplaQueryService;
+            _amplaCommandService = amplaCommandService;
+            _readWriteStrategy = readWriteStrategy;
+        }
+
         public override void Initialize(RapidImpexConfiguration configuration)
         {
             base.Initialize(configuration);
@@ -58,8 +65,9 @@ namespace RapidImpex.Functionality
         {
             var file = Path.Combine(Config.WorkingDirectory, Config.File);
 
-            var records = _readWriteStrategy.Read(file);
-            _amplaCommandService.SubmitRecords(records);
+            var records = _readWriteStrategy.ReadFromFile(file);
+
+            _amplaCommandService.SubmitRecords(records.SelectMany(x => x.Value));
         }
     }
 }

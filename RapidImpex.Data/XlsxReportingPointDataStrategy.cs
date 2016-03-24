@@ -49,6 +49,12 @@ namespace RapidImpex.Data
         {
             var fileInfo = new FileInfo(inputPath);
 
+            if (!fileInfo.Exists)
+            {
+                Logger.Warning("Unable to find file '{0}'", fileInfo.FullName);
+                return new Dictionary<ReportingPoint, IEnumerable<ReportingPointRecord>>();
+            }
+
             Logger.Information("Importing file '{0}'", fileInfo.FullName);
 
             var result = new Dictionary<ReportingPoint, IEnumerable<ReportingPointRecord>>();

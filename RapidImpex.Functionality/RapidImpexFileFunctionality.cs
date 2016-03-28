@@ -23,6 +23,13 @@ namespace RapidImpex.Functionality
             _readWriteStrategy = readWriteStrategy;
         }
 
+        public override void Initialize(RapidImpexConfiguration configuration)
+        {
+            base.Initialize(configuration);
+
+            _amplaQueryService.Initialize(configuration);
+        }
+
         public override void Execute()
         {
             var reportingPoint = Config.Location;

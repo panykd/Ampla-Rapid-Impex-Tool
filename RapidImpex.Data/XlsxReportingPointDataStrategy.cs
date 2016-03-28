@@ -76,14 +76,19 @@ namespace RapidImpex.Data
 
                     var records = new List<ReportingPointRecord>();
 
-                    var fields = reportingPoint.Fields.Values;
-
-                    var indexToFieldLookup = new ReportingPointField[fields.Count()];
+                    var fields = GetReportingPointFields(reportingPoint);
+                    
+                    var indexToFieldLookup = new Dictionary<int, ReportingPointField>();
 
                     // Read header row
-                    for (var i = 0; i < fields.Count(); i++)
+                    for (var i = dataStartCol + 3; i < ExcelPackage.MaxColumns; i++)
                     {
-                        var fieldName = worksheet.Cells[dataStartRow + 0, dataStartCol + 3 + i].Text;
+                        var fieldName = worksheet.Cells[dataStartRow + 0, i].Text;
+
+                        if (string.IsNullOrWhiteSpace(fieldName))
+                        {
+                            break;
+                        }
 
                         var field = fields.FirstOrDefault(x => x.Id == fieldName) ??
                                     fields.First(x => x.DisplayName == fieldName);
@@ -112,11 +117,17 @@ namespace RapidImpex.Data
                         record.IsConfirmed = ReadAndSetIsEmpty<bool>(confirmedValue, ref rowEmpty);
                         record.IsDeleted = ReadAndSetIsEmpty<bool>(deletedValue, ref rowEmpty);
 
-                        for (var i = 0; i < indexToFieldLookup.Count(); i++)
+                        //for (var i = 0; i < indexToFieldLookup.Count(); i++)
+                        //{
+                        //    var field = indexToFieldLookup[i];
+                        //    var fieldValue = worksheet.Cells[currentRow, dataStartCol + 3 + i].Text;
+                        //    record.Values[field.Id] = ReadAndSetIsEmpty(fieldValue, field.FieldType, ref rowEmpty);
+                        //}
+
+                        foreach (var kvp in indexToFieldLookup)
                         {
-                            var field = indexToFieldLookup[i];
-                            var fieldValue = worksheet.Cells[currentRow, dataStartCol + 3 + i].Text;
-                            record.Values[field.Id] = ReadAndSetIsEmpty(fieldValue, field.FieldType, ref rowEmpty);
+                            var fieldValue = worksheet.Cells[currentRow, kvp.Key].Text;
+                            record.Values[kvp.Value.Id] = ReadAndSetIsEmpty(fieldValue, kvp.Value.FieldType, ref rowEmpty);
                         }
 
                         if (rowEmpty)
@@ -226,18 +237,20 @@ namespace RapidImpex.Data
 
                 // Data
 
-
                 // Header Row
                 worksheet.Cells[dataStartRow + 0, dataStartCol + 0].Value = "Id";
                 worksheet.Cells[dataStartRow + 0, dataStartCol + 1].Value = "Confirmed";
                 worksheet.Cells[dataStartRow + 0, dataStartCol + 2].Value = "Deleted";
 
+                // Excluded the 'Header' fields
+                
                 // Prepare the lookups while the file isn't open
                 var idColumnLookup = new Dictionary<string, int>();
                 var displayNameColumnLookup = new Dictionary<string, int>();
                 // Select the headers out into and array so that it doesnt change over time
 
-                var fields = reportingPoint.Fields.Values.ToArray();
+
+                var fields = GetReportingPointFields(reportingPoint);
 
                 for (var i = 0; i < fields.Count(); i++)
                 {
@@ -281,6 +294,17 @@ namespace RapidImpex.Data
 
                 package.Save();
             }
+        }
+
+        private static ReportingPointField[] GetReportingPointFields(ReportingPoint reportingPoint)
+        {
+            var excludedFields = new[] {"Id", "Confirmed", "Deleted"};
+
+            var fields = reportingPoint.Fields.Values
+                .Where(x => !excludedFields.Contains(x.Id) && !excludedFields.Contains(x.DisplayName))
+                .ToArray();
+
+            return fields;
         }
     }
 }

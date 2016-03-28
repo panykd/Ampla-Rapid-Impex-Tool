@@ -52,7 +52,8 @@ namespace RapidImpex.Ampla
                     join rpf in reportingPoint.Fields on fv.Key equals rpf.Key
                     where
                         !rpf.Value.IsReadOnly &&
-                        !versionModifier.AdditionalReadonlyFields(reportingPoint).Contains(fv.Key)
+                        !versionModifier.AdditionalReadonlyFields(reportingPoint).Contains(rpf.Value.Id) &&
+                        !versionModifier.AdditionalReadonlyFields(reportingPoint).Contains(rpf.Value.DisplayName)
                     select new Field()
                     {
                         Name = versionModifier.AmplaFieldName(reportingPoint, fv.Key),

@@ -107,25 +107,28 @@ namespace RapidImpex.Ampla
                 IsMandatory = fieldView.required,
                 HasAllowedValues = fieldView.hasAllowedValues,
                 FieldType = fieldView.type.FromAmplaType()
-            }).ToDictionary(k => k.Id, v => v);
+            })
+            .ToDictionary(k => k.Id, v => v);
 
             // Get Allowed Values
             var fieldsWithAllowedValues = fields.Values.Where(x => x.HasAllowedValues).Select(x => x.Id).ToArray();
 
-            if (fieldsWithAllowedValues.Any())
+            if (!fieldsWithAllowedValues.Any())
             {
-                var allowedValuesResponse = _client.GetAllowedValues(new GetAllowedValuesRequestMessage(new GetAllowedValuesRequest
-                {
-                    Module = reportingPoint.Module.AsAmplaModule(),
-                    Location = reportingPoint.FullName,
-                    Credentials = _clientFactory.GetCredentials(),
-                    Fields = fieldsWithAllowedValues.ToArray()
-                }));
+                return fields;   
+            }
 
-                foreach (var result in allowedValuesResponse.GetAllowedValuesResponse.AllowedValueFields)
-                {
-                    fields[result.Field].AllowedValues = result.AllowedValues;
-                }
+            var allowedValuesResponse = _client.GetAllowedValues(new GetAllowedValuesRequestMessage(new GetAllowedValuesRequest
+            {
+                Module = reportingPoint.Module.AsAmplaModule(),
+                Location = reportingPoint.FullName,
+                Credentials = _clientFactory.GetCredentials(),
+                Fields = fieldsWithAllowedValues.ToArray()
+            }));
+
+            foreach (var result in allowedValuesResponse.GetAllowedValuesResponse.AllowedValueFields)
+            {
+                fields[result.Field].AllowedValues = result.AllowedValues;
             }
 
             return fields;

@@ -53,7 +53,7 @@ namespace RapidImpex.Ampla
 
         public static ReportingPointRecord CreateRecordFor(this Row row, ReportingPoint reportingPoint)
         {
-            var excludedFields = new[] {"Deleted", "Confirmed"};
+            var excludedFields = new[] {"Id", "Deleted", "Confirmed"};
 
             var record = new ReportingPointRecord
             {

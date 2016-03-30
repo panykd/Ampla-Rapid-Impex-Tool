@@ -44,14 +44,18 @@ namespace RapidImpex.Models
             Entries.Add(new RelationshipMatrixEntry() { CauseCode = causeCode, ClassificationCode = classificationCode });
         }
 
-        public int GetCauseCode(string name)
+        public int? GetCauseCode(string name)
         {
-            return _causeMappings[name];
+            int causeCode;
+
+            return _causeMappings.TryGetValue(name, out causeCode) ? causeCode : (int?)null;
         }
 
-        public int GetClassificationCode(string name)
+        public int? GetClassificationCode(string name)
         {
-            return _classificationMappings[name];
+            int classificationCode;
+
+            return _causeMappings.TryGetValue(name, out classificationCode) ? classificationCode : (int?)null;
         }
     }
 

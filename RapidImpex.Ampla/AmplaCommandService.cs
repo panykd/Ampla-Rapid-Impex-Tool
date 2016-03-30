@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using RapidImpex.Ampla.AmplaData200806;
 using RapidImpex.Models;
+using Serilog;
 using RelationshipMatrix = RapidImpex.Models.RelationshipMatrix;
 
 namespace RapidImpex.Ampla
 {
     public class AmplaCommandService
     {
+        public ILogger Logger { get; set; }
+
         private DataWebServiceFactory _clientFactory;
         private readonly Func<RapidImpexConfiguration, DataWebServiceFactory> _factory;
         private readonly AmplaQueryService _amplaQueryService;
@@ -58,7 +61,7 @@ namespace RapidImpex.Ampla
                     {
                         Name = versionModifier.AmplaFieldName(reportingPoint, fv.Key),
                         Value = ToAmplaValueString(fv.Value)
-                    }).ToArray();
+                    }).ToList();
 
                 // update the field values for the relationship matrix
 
@@ -74,17 +77,39 @@ namespace RapidImpex.Ampla
 
                     var causeField = fieldValues.FirstOrDefault(x => x.Name == "Cause");
 
-                    if (causeField != null && !String.IsNullOrWhiteSpace(causeField.Value))
+                    if (causeField != null && !string.IsNullOrWhiteSpace(causeField.Value))
                     {
-                        causeField.Value = relationshipMatrix.Value.GetCauseCode(causeField.Value).ToString();
+                        var code = relationshipMatrix.Value.GetCauseCode(causeField.Value);
+
+                        if (code.HasValue)
+                        {
+                            causeField.Value = code.Value.ToString();
+                        }
+                        else
+                        {
+                            Logger.Error("Record: {0}\t\tUnable to find Cause '{1}' for '{2}'@'{3}'. Skipping field.",
+                                record.Id, causeField.Value, reportingPoint.FullName, causeLocation);
+                            fieldValues.Remove(causeField);
+                        }
                     }
 
                     var classificationField = fieldValues.FirstOrDefault(x => x.Name == "Classification");
 
                     if (classificationField != null && !String.IsNullOrWhiteSpace(classificationField.Value))
                     {
-                        classificationField.Value =
-                            relationshipMatrix.Value.GetCauseCode(classificationField.Value).ToString();
+                        var code = relationshipMatrix.Value.GetCauseCode(classificationField.Value);
+
+                        if (code.HasValue)
+                        {
+                            classificationField.Value = code.Value.ToString();
+                        }
+                        else
+                        {
+                            Logger.Error(
+                                "Record: {0}\t\tUnable to find Classification '{1}' for '{2}'@'{3}'. Skipping field.",
+                                record.Id, classificationField.Value, reportingPoint.FullName, causeLocation);
+                            fieldValues.Remove(causeField);
+                        }
                     }
                 }
 

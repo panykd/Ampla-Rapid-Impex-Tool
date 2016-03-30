@@ -181,9 +181,8 @@ namespace RapidImpex.Ampla
                     new GetRelationshipMatrixValuesRequestMessage(new GetRelationshipMatrixValuesRequest()
                     {
                         Credentials = _clientFactory.GetCredentials(),
-                        Location =
-                            "ERA - Ranger.Processing Plant.Crushing - Areas 21 22.Primary Crushing - Area 21.Primary Crusher.Downtime",
-                        Module = AmplaModules.Downtime,
+                        Location = reportingPoint.FullName,
+                        Module = reportingPoint.Module.AsAmplaModule(),
                         DependentFieldValues = new[] { new DependentFieldValue() { name = "Cause Location", Value = causeLocation }, }
                     }));
 

@@ -66,8 +66,18 @@ namespace RapidImpex.Ampla
                 // update the field values for the relationship matrix
 
                 var causeLocationField = fieldValues.FirstOrDefault(x => x.Name == "Cause Location");
+                var causeField = fieldValues.FirstOrDefault(x => x.Name == "Cause");
+                var classificationField = fieldValues.FirstOrDefault(x => x.Name == "Classification");
+                var effectField = fieldValues.FirstOrDefault(x => x.Name == "Effect");
 
-                if (causeLocationField != null)
+                if (causeLocationField == null || string.IsNullOrWhiteSpace(causeLocationField.Value))
+                {
+                    if (causeLocationField != null) fieldValues.Remove(causeLocationField);
+                    if (causeField != null) fieldValues.Remove(causeField);
+                    if (classificationField != null) fieldValues.Remove(classificationField);
+                    if (effectField != null) fieldValues.Remove(effectField);
+                }
+                else
                 {
                     var causeLocation = causeLocationField.Value;
 
@@ -75,9 +85,17 @@ namespace RapidImpex.Ampla
                         new Lazy<RelationshipMatrix>(
                             () => _amplaQueryService.GetRelationshipMatrixFor(reportingPoint, causeLocation));
 
-                    var causeField = fieldValues.FirstOrDefault(x => x.Name == "Cause");
+                    // Cause Field
 
-                    if (causeField != null && !string.IsNullOrWhiteSpace(causeField.Value))
+                    if (causeField == null)
+                    {
+                        // Do Nothing
+                    }
+                    else if (string.IsNullOrWhiteSpace(causeField.Value))
+                    {
+                        fieldValues.Remove(causeField);
+                    }
+                    else
                     {
                         var code = relationshipMatrix.Value.GetCauseCode(causeField.Value);
 
@@ -93,9 +111,17 @@ namespace RapidImpex.Ampla
                         }
                     }
 
-                    var classificationField = fieldValues.FirstOrDefault(x => x.Name == "Classification");
+                    // Classificiation Field
 
-                    if (classificationField != null && !String.IsNullOrWhiteSpace(classificationField.Value))
+                    if (classificationField == null)
+                    {
+                        // Do nothing
+                    }
+                    else if (string.IsNullOrWhiteSpace(classificationField.Value))
+                    {
+                        fieldValues.Remove(causeField);
+                    }
+                    else
                     {
                         var code = relationshipMatrix.Value.GetCauseCode(classificationField.Value);
 
@@ -108,7 +134,33 @@ namespace RapidImpex.Ampla
                             Logger.Error(
                                 "Record: {0}\t\tUnable to find Classification '{1}' for '{2}'@'{3}'. Skipping field.",
                                 record.Id, classificationField.Value, reportingPoint.FullName, causeLocation);
-                            fieldValues.Remove(causeField);
+                            fieldValues.Remove(classificationField);
+                        }
+                    }
+
+                    // Effect Field
+
+                    if (effectField == null)
+                    {
+                        // Do nothing
+                    }
+                    else if (effectField.Value == null)
+                    {
+                        fieldValues.Remove(effectField);
+                    }
+                    else
+                    {
+                        var code = relationshipMatrix.Value.GetEffectCode(effectField.Value);
+
+                        if (!string.IsNullOrEmpty(code))
+                        {
+                            effectField.Value = code;
+                        }
+                        else
+                        {
+                            Logger.Error("Record: {0}\t\tUnable to find Effect '{1}' for '{2}'@'{3}'. Skipping field.",
+                                record.Id, effectField.Value, reportingPoint.FullName, causeLocation);
+                            fieldValues.Remove(effectField);
                         }
                     }
                 }
@@ -243,7 +295,9 @@ namespace RapidImpex.Ampla
                     "ConfirmedBy",
                     "ConfirmedDateTime",
                     "IsDeleted",
-                    "ObjectId"
+                    "ObjectId",
+                    "CauseLocationEquipmentId",
+                    "CauseLocationEquipmentType"
                 };
         }
     }

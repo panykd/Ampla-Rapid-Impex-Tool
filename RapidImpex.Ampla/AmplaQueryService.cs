@@ -175,9 +175,9 @@ namespace RapidImpex.Ampla
 
         public RelationshipMatrix GetRelationshipMatrixFor(ReportingPoint reportingPoint, string causeLocation)
         {
-            var _client = _clientFactory.GetClient();
+            var client = _clientFactory.GetClient();
 
-            var response = _client.GetRelationshipMatrixValues(
+            var response = client.GetRelationshipMatrixValues(
                     new GetRelationshipMatrixValuesRequestMessage(new GetRelationshipMatrixValuesRequest()
                     {
                         Credentials = _clientFactory.GetCredentials(),
@@ -194,6 +194,7 @@ namespace RapidImpex.Ampla
 
                 int? causeCode = null;
                 int? classificationCode = null;
+                string effectCode = null;
 
                 if (cause != null)
                 {
@@ -209,9 +210,17 @@ namespace RapidImpex.Ampla
                     relationshipMatrix.UpsertClassification(classificationCode.Value, classification.Value);
                 }
 
-                if (causeCode.HasValue || classificationCode.HasValue)
+                var effect = rmv.MatrixValues.FirstOrDefault(x => x.name == "Effect");
+
+                if (effect != null)
                 {
-                    relationshipMatrix.AddEntry(causeCode, classificationCode);
+                    effectCode = effect.id;
+                    relationshipMatrix.UpsertEffect(effectCode, effect.Value);
+                }
+
+                if (causeCode.HasValue || classificationCode.HasValue || !string.IsNullOrWhiteSpace(effectCode))
+                {
+                    relationshipMatrix.AddEntry(causeCode, classificationCode, effectCode);
                 }
             }
 

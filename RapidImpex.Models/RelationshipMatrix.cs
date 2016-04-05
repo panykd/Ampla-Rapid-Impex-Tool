@@ -19,6 +19,8 @@ namespace RapidImpex.Models
 
         private readonly Dictionary<string, int> _classificationMappings = new Dictionary<string, int>();
 
+        private readonly Dictionary<string, string> _effectMappings = new Dictionary<string, string>();
+
         public void UpsertCause(int code, string name)
         {
             _causeMappings[name] = code;
@@ -29,7 +31,12 @@ namespace RapidImpex.Models
             _classificationMappings[name] = code;
         }
 
-        public void AddEntry(int? causeCode, int? classificationCode)
+        public void UpsertEffect(string code, string name)
+        {
+            _effectMappings[name] = code;
+        }
+
+        public void AddEntry(int? causeCode, int? classificationCode, string effectCode)
         {
             if (causeCode.HasValue && !_causeMappings.ContainsValue(causeCode.Value))
             {
@@ -41,7 +48,12 @@ namespace RapidImpex.Models
                 throw new NotImplementedException();
             }
 
-            Entries.Add(new RelationshipMatrixEntry() { CauseCode = causeCode, ClassificationCode = classificationCode });
+            if (!string.IsNullOrWhiteSpace(effectCode) && !_effectMappings.ContainsValue(effectCode))
+            {
+                throw new NotImplementedException();
+            }
+
+            Entries.Add(new RelationshipMatrixEntry() { CauseCode = causeCode, ClassificationCode = classificationCode, EffectCode = effectCode });
         }
 
         public int? GetCauseCode(string name)
@@ -57,11 +69,18 @@ namespace RapidImpex.Models
 
             return _causeMappings.TryGetValue(name, out classificationCode) ? classificationCode : (int?)null;
         }
+
+        public string GetEffectCode(string name)
+        {
+            string effectCode;
+            return _effectMappings.TryGetValue(name, out effectCode) ? effectCode : null;
+        }
     }
 
     public class RelationshipMatrixEntry
     {
         public int? CauseCode { get; set; }
         public int? ClassificationCode { get; set; }
+        public string EffectCode { get; set; }
     }
 }

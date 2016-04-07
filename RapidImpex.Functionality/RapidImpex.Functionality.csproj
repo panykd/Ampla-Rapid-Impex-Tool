@@ -56,9 +56,7 @@
     <Compile Include="FunctionalityModule.cs" />
     <Compile Include="IRapidImpexFunctionality.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RapidImpexExportFunctionality.cs" />
     <Compile Include="RapidImpexFileFunctionality.cs" />
-    <Compile Include="RapidImpexImportFunctionality.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

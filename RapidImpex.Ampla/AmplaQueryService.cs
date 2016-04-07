@@ -84,7 +84,7 @@ namespace RapidImpex.Ampla
             return reportingPoint;
         }
 
-        public Dictionary<string, ReportingPointField> GetReportingPointFieldInformation(ReportingPoint reportingPoint)
+        private Dictionary<string, ReportingPointField> GetReportingPointFieldInformation(ReportingPoint reportingPoint)
         {
             var _client = _clientFactory.GetClient();
 
@@ -149,7 +149,7 @@ namespace RapidImpex.Ampla
                         string.Format(">= {0} AND < {1}", startTimeUtc.AsAmplaDateTime(), endTimeUtc.AsAmplaDateTime())
                 },
                 Metadata = false,
-                OutputOptions = new GetDataOutputOptions { ResolveIdentifiers = true }, // TODO: Verify this matches what is returned from AllowedValues }
+                OutputOptions = new GetDataOutputOptions { ResolveIdentifiers = true },
                 View = new GetDataView
                 {
                     Context = NavigationContext.Plant,

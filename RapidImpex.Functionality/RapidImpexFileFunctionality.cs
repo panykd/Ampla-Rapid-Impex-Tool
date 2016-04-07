@@ -17,7 +17,6 @@ namespace RapidImpex.Functionality
         private readonly IReportingPointDataReadWriteStrategy _readWriteStrategy;
 
         public RapidImpexFileExportFunctionality(AmplaQueryService amplaQueryService, IReportingPointDataReadWriteStrategy readWriteStrategy)
-            : base()
         {
             _amplaQueryService = amplaQueryService;
             _readWriteStrategy = readWriteStrategy;

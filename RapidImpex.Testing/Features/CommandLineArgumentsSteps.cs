@@ -23,7 +23,9 @@ namespace RapidImpex.Testing.Features
         [When(@"I parse the arguments")]
         public void WhenIParseTheArguments()
         {
-            new MyCommandLineParser().Parse(_arguments, out _configuration);
+            var parser = RapidImpexConsole.RapidImpex.CreateParser();
+
+            parser.Parse(_arguments, out _configuration);
         }
         
         [Then(@"UseHttp is '(.*)'")]

@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Policy;
 using System.ServiceModel.Configuration;
@@ -14,7 +15,7 @@ using Serilog;
 
 namespace RapidImpexConsole
 {
-    interface IFlagOption<in TConfig>
+    public interface IFlagOption<in TConfig>
     {
         void SetFlag(TConfig config);
     }
@@ -35,7 +36,7 @@ namespace RapidImpexConsole
         }
     }
 
-    interface IKeyValueOption<in TConfig>
+    public interface IKeyValueOption<in TConfig>
     {
         void SetDefaultValue(TConfig config);
 
@@ -81,32 +82,21 @@ namespace RapidImpexConsole
     {
         public ILogger Logger { get; set; }
 
-        private readonly Dictionary<string, IFlagOption<RapidImpexConfiguration>> _flagOptions = new Dictionary<string, IFlagOption<RapidImpexConfiguration>>(); 
+        private readonly Dictionary<string, IFlagOption<RapidImpexConfiguration>> _flagOptions =
+            new Dictionary<string, IFlagOption<RapidImpexConfiguration>>();
 
-        private readonly Dictionary<string, IKeyValueOption<RapidImpexConfiguration>> _keyValueOptions = new Dictionary<string, IKeyValueOption<RapidImpexConfiguration>>(); 
+        private readonly Dictionary<string, IKeyValueOption<RapidImpexConfiguration>> _keyValueOptions =
+            new Dictionary<string, IKeyValueOption<RapidImpexConfiguration>>();
 
-        public MyCommandLineParser()
+        public void AddFlagOption(string flag, IFlagOption<RapidImpexConfiguration> flagOption)
         {
-            _flagOptions["useHttp"] = new FlagOption<RapidImpexConfiguration>(x => x.UseBasicHttp);
-            _flagOptions["simple"] = new FlagOption<RapidImpexConfiguration>(x => x.UseSimpleAuthentication);
-            _flagOptions["import"] = new FlagOption<RapidImpexConfiguration>(x => x.IsImport);
-
-            _keyValueOptions["path"] = new KeyValueOption<RapidImpexConfiguration,string>(x => x.WorkingDirectory) {DefaultValue = Environment.CurrentDirectory};
-            _keyValueOptions["file"] = new KeyValueOption<RapidImpexConfiguration,string>(x => x.File);
-            _keyValueOptions["user"] = new KeyValueOption<RapidImpexConfiguration,string>(x => x.Username);
-            _keyValueOptions["password"] = new KeyValueOption<RapidImpexConfiguration, string>(x => x.Password);
-            _keyValueOptions["location"] = new KeyValueOption<RapidImpexConfiguration,string>(x => x.Location);
-            _keyValueOptions["module"] = new KeyValueOption<RapidImpexConfiguration,string>(x => x.Module);
-
-            Func<string, DateTime> localMap = (x) => DateTime.SpecifyKind(DateTime.Parse(x, CultureInfo.InvariantCulture), DateTimeKind.Local);
-            Func<string, DateTime> utcMap = (x) => DateTime.SpecifyKind(DateTime.Parse(x, CultureInfo.InvariantCulture), DateTimeKind.Utc);
-
-            _keyValueOptions["start"] = new KeyValueOption<RapidImpexConfiguration, DateTime>(x => x.StartTime) {Mapper = localMap};
-            _keyValueOptions["startUtc"] = new KeyValueOption<RapidImpexConfiguration, DateTime>(x => x.StartTime) { Mapper = utcMap };
-            _keyValueOptions["end"] = new KeyValueOption<RapidImpexConfiguration, DateTime>(x => x.EndTime) { Mapper = localMap };
-            _keyValueOptions["endUtc"] = new KeyValueOption<RapidImpexConfiguration, DateTime>(x => x.EndTime) { Mapper = utcMap };
+            _flagOptions.Add(flag, flagOption);
         }
 
+        public void AddKeyValueOption(string key, IKeyValueOption<RapidImpexConfiguration> keyValueOption)
+        {
+            _keyValueOptions.Add(key, keyValueOption);
+        }
 
         public bool Parse(string[] args, out RapidImpexConfiguration configuration)
         {

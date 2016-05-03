@@ -54,5 +54,14 @@ namespace RapidImpex.Data
 
             _locker.ExitWriteLock();
         }
+
+        public void WriteToSheet(string filePath, ReportingPoint reportingPoint, IEnumerable<ReportingPointRecord> records)
+        {
+            _locker.EnterWriteLock();
+
+            _instance.WriteToSheet(filePath, reportingPoint, records);
+
+            _locker.ExitWriteLock();
+        }
     }
 }

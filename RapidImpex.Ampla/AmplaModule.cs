@@ -22,6 +22,7 @@ namespace RapidImpex.Ampla
 
             builder.RegisterType<AmplaQueryService>()
                 .AsSelf()
+                .As<IAmplaQueryService>()
                 .SingleInstance();
 
             builder.RegisterType<AmplaCommandService>()

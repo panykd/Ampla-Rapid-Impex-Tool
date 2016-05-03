@@ -45,7 +45,7 @@ namespace RapidImpexConsole
         string PropertyName { get; }
     }
 
-    class KeyValueOption<TConfig, TProperty> : IKeyValueOption<TConfig>
+    public class KeyValueOption<TConfig, TProperty> : IKeyValueOption<TConfig>
     {
         private readonly PropertyInfo _propertyInfo;
 
@@ -78,32 +78,32 @@ namespace RapidImpexConsole
         }
     }
 
-    public class MyCommandLineParser
+    public class MyCommandLineParser<TConfig> where TConfig : new()
     {
         public ILogger Logger { get; set; }
 
-        private readonly Dictionary<string, IFlagOption<RapidImpexConfiguration>> _flagOptions =
-            new Dictionary<string, IFlagOption<RapidImpexConfiguration>>();
+        private readonly Dictionary<string, IFlagOption<TConfig>> _flagOptions =
+            new Dictionary<string, IFlagOption<TConfig>>();
 
-        private readonly Dictionary<string, IKeyValueOption<RapidImpexConfiguration>> _keyValueOptions =
-            new Dictionary<string, IKeyValueOption<RapidImpexConfiguration>>();
+        private readonly Dictionary<string, IKeyValueOption<TConfig>> _keyValueOptions =
+            new Dictionary<string, IKeyValueOption<TConfig>>();
 
-        public void AddFlagOption(string flag, IFlagOption<RapidImpexConfiguration> flagOption)
+        public void AddFlagOption(string flag, IFlagOption<TConfig> flagOption)
         {
             _flagOptions.Add(flag, flagOption);
         }
 
-        public void AddKeyValueOption(string key, IKeyValueOption<RapidImpexConfiguration> keyValueOption)
+        public void AddKeyValueOption(string key, IKeyValueOption<TConfig> keyValueOption)
         {
             _keyValueOptions.Add(key, keyValueOption);
         }
 
-        public bool Parse(string[] args, out RapidImpexConfiguration configuration)
+        public bool Parse(string[] args, out TConfig configuration)
         {
             var flagRegex = new Regex("--(?'flag'.+)", RegexOptions.Compiled);
             var argumentRegex = new Regex("-(?'arg'.+)=(?'value'.+)", RegexOptions.Compiled);
 
-            configuration = new RapidImpexConfiguration();
+            configuration = new TConfig();
 
             try
             {

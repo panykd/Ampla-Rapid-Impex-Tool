@@ -10,5 +10,6 @@ namespace RapidImpex.Data
 
         void Write(string outputPath, IEnumerable<ReportingPointRecord> records);
         void WriteToFile(string filePath, string worksheetName, ReportingPoint reportingPoint, IEnumerable<ReportingPointRecord> records);
+        void WriteToSheet(string filePath, ReportingPoint reportingPoint, IEnumerable<ReportingPointRecord> records);
     }
 }

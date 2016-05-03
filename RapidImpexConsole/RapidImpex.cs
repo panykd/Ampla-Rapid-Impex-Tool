@@ -52,9 +52,9 @@ namespace RapidImpexConsole
             functionality.Execute();
         }
 
-        public static MyCommandLineParser CreateParser()
+        public static MyCommandLineParser<RapidImpexConfiguration> CreateParser()
         {
-            var parser = new MyCommandLineParser();
+            var parser = new MyCommandLineParser<RapidImpexConfiguration>();
 
             parser.AddFlagOption("useHttp", new FlagOption<RapidImpexConfiguration>(x => x.UseBasicHttp));
             parser.AddFlagOption("simple", new FlagOption<RapidImpexConfiguration>(x => x.UseSimpleAuthentication));

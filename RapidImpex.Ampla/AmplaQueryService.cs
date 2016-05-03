@@ -7,7 +7,16 @@ using RelationshipMatrix = RapidImpex.Models.RelationshipMatrix;
 
 namespace RapidImpex.Ampla
 {
-    public class AmplaQueryService
+    public interface IAmplaQueryService
+    {
+        void Initialize(RapidImpexConfiguration configuration);
+        IEnumerable<ReportingPoint> GetHeirarchyReportingPointsFor(IEnumerable<AmplaModules> modules);
+        ReportingPoint GetReportingPoint(string location, string module);
+        IEnumerable<ReportingPointRecord> GetData(ReportingPoint reportingPoint, DateTime startTimeUtc, DateTime endTimeUtc);
+        RelationshipMatrix GetRelationshipMatrixFor(ReportingPoint reportingPoint, string causeLocation);
+    }
+
+    public class AmplaQueryService : IAmplaQueryService
     {
         private readonly Func<RapidImpexConfiguration, DataWebServiceFactory> _factory;
         private DataWebServiceFactory _clientFactory;

@@ -22,9 +22,9 @@ namespace RapidImpex.Data
         const int summaryStartCol = 1;
 
         private readonly IMultiPartFileNamingStrategy _namingStrategy;
-        private readonly AmplaQueryService _amplaQueryService;
+        private readonly IAmplaQueryService _amplaQueryService;
 
-        public XlsxReportingPointDataStrategy(IMultiPartFileNamingStrategy namingStrategy, AmplaQueryService amplaQueryService)
+        public XlsxReportingPointDataStrategy(IMultiPartFileNamingStrategy namingStrategy, IAmplaQueryService amplaQueryService)
         {
             _namingStrategy = namingStrategy;
             _amplaQueryService = amplaQueryService;
@@ -72,12 +72,39 @@ namespace RapidImpex.Data
                     var module = worksheet.Cells[summaryStartRow + 0, summaryStartCol + 1].Text;
                     var location = worksheet.Cells[summaryStartRow + 1, summaryStartCol + 1].Text;
 
-                    var reportingPoint = _amplaQueryService.GetReportingPoint(location, module);
+                    var reportingPoint = _amplaQueryService.GetReportingPoint(location, module) ?? 
+                        new ReportingPoint() {FullName = location, Module = module};
+
+                    ReportingPointField[] fields;
+
+                    if (reportingPoint.Fields == null)
+                    {
+                        // Use the fields from the file
+
+                        var fieldsList = new List<ReportingPointField>();
+
+                        for (var i = dataStartCol + 3; i < ExcelPackage.MaxColumns; i++)
+                        {
+                            var fieldName = worksheet.Cells[dataStartRow + 0, i].Text;
+
+                            if (string.IsNullOrWhiteSpace(fieldName))
+                            {
+                                break;
+                            }
+
+                            fieldsList.Add(new ReportingPointField() { Id = fieldName, FieldType = typeof(object)});
+                        }
+
+                        fields = fieldsList.ToArray();
+                    }
+                    else
+                    {
+                        fields = GetReportingPointFields(reportingPoint);
+                    }
+                     
 
                     var records = new List<ReportingPointRecord>();
 
-                    var fields = GetReportingPointFields(reportingPoint);
-                    
                     var indexToFieldLookup = new Dictionary<int, ReportingPointField>();
 
                     // Read header row
@@ -91,7 +118,12 @@ namespace RapidImpex.Data
                         }
 
                         var field = fields.FirstOrDefault(x => x.Id == fieldName) ??
-                                    fields.First(x => x.DisplayName == fieldName);
+                                    fields.FirstOrDefault(x => x.DisplayName == fieldName);
+
+                        if (field == null)
+                        {
+                            continue;
+                        }
 
                         indexToFieldLookup[i] = field;
                     }
@@ -241,8 +273,18 @@ namespace RapidImpex.Data
                 var displayNameColumnLookup = new Dictionary<string, int>();
                 // Select the headers out into and array so that it doesnt change over time
 
+                ReportingPointField[] fields;
 
-                var fields = GetReportingPointFields(reportingPoint);
+                var reportingPointRecords = records as ReportingPointRecord[] ?? records.ToArray();
+                if (reportingPoint.Fields == null)
+                {
+                    // Infer usage from the first record
+                    fields = !reportingPointRecords.Any() ? new ReportingPointField[0] : reportingPointRecords.First().Values.Select(x => new ReportingPointField() {Id = x.Key, DisplayName = x.Key}).ToArray();
+                }
+                else
+                {
+                    fields = GetReportingPointFields(reportingPoint);
+                }
 
                 for (var i = 0; i < fields.Count(); i++)
                 {
@@ -256,7 +298,7 @@ namespace RapidImpex.Data
 
                 // Data Rows
                 int currentRow = dataStartRow + 1;
-                foreach (var record in records)
+                foreach (var record in reportingPointRecords)
                 {
                     worksheet.Cells[currentRow, dataStartCol + 0].Value = record.Id;
                     worksheet.Cells[currentRow, dataStartCol + 1].Value = record.IsConfirmed;
@@ -286,6 +328,17 @@ namespace RapidImpex.Data
 
                 package.Save();
             }
+        }
+
+        //Prasanta :: added this method
+        public void WriteToSheet(string filePath, ReportingPoint reportingPoint, IEnumerable<ReportingPointRecord> records)
+        {
+            string fileName;
+            string worksheetName;
+
+            _namingStrategy.GetFileParts(reportingPoint, out fileName, out worksheetName);
+
+            WriteToFile(filePath, worksheetName, reportingPoint, records);
         }
 
         private static ReportingPointField[] GetReportingPointFields(ReportingPoint reportingPoint)

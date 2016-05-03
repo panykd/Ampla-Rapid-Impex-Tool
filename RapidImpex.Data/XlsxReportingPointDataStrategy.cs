@@ -77,7 +77,7 @@ namespace RapidImpex.Data
                     var records = new List<ReportingPointRecord>();
 
                     var fields = GetReportingPointFields(reportingPoint);
-                    
+
                     var indexToFieldLookup = new Dictionary<int, ReportingPointField>();
 
                     // Read header row
@@ -116,7 +116,14 @@ namespace RapidImpex.Data
                         record.Id = ReadAndSetIsEmpty<long>(idValue, ref rowEmpty);
                         record.IsConfirmed = ReadAndSetIsEmpty<bool>(confirmedValue, ref rowEmpty);
                         record.IsDeleted = ReadAndSetIsEmpty<bool>(deletedValue, ref rowEmpty);
-                        
+
+                        //for (var i = 0; i < indexToFieldLookup.Count(); i++)
+                        //{
+                        //    var field = indexToFieldLookup[i];
+                        //    var fieldValue = worksheet.Cells[currentRow, dataStartCol + 3 + i].Text;
+                        //    record.Values[field.Id] = ReadAndSetIsEmpty(fieldValue, field.FieldType, ref rowEmpty);
+                        //}
+
                         foreach (var kvp in indexToFieldLookup)
                         {
                             var fieldValue = worksheet.Cells[currentRow, kvp.Key].Text;
@@ -199,9 +206,20 @@ namespace RapidImpex.Data
 
                 // open the file
                 var filePath = Path.ChangeExtension(Path.Combine(outputPath, fileName), ".xlsx");
-                
+
                 WriteToFile(filePath, worksheetName, reportingPoint, rpd);
             }
+        }
+
+        //Prasanta :: added this method
+        public void WriteToSheet(string filePath, ReportingPoint reportingPoint, IEnumerable<ReportingPointRecord> records)
+        {
+            string fileName;
+            string worksheetName;
+
+            _namingStrategy.GetFileParts(reportingPoint, out fileName, out worksheetName);
+
+            WriteToFile(filePath, worksheetName, reportingPoint, records);
         }
 
         public void WriteToFile(string filePath, string worksheetName, ReportingPoint reportingPoint, IEnumerable<ReportingPointRecord> records)
@@ -221,6 +239,7 @@ namespace RapidImpex.Data
                 var worksheet = worksheets.Add(worksheetName);
 
                 // Summary
+
                 worksheet.Cells[summaryStartRow + 0, summaryStartCol + 0].Value = "Module";
                 worksheet.Cells[summaryStartRow + 0, summaryStartCol + 1].Value = reportingPoint.Module;
 
@@ -235,7 +254,7 @@ namespace RapidImpex.Data
                 worksheet.Cells[dataStartRow + 0, dataStartCol + 2].Value = "Deleted";
 
                 // Excluded the 'Header' fields
-                
+
                 // Prepare the lookups while the file isn't open
                 var idColumnLookup = new Dictionary<string, int>();
                 var displayNameColumnLookup = new Dictionary<string, int>();
@@ -290,7 +309,7 @@ namespace RapidImpex.Data
 
         private static ReportingPointField[] GetReportingPointFields(ReportingPoint reportingPoint)
         {
-            var excludedFields = new[] {"Id", "Confirmed", "Deleted"};
+            var excludedFields = new[] { "Id", "Confirmed", "Deleted" };
 
             var fields = reportingPoint.Fields.Values
                 .Where(x => !excludedFields.Contains(x.Id) && !excludedFields.Contains(x.DisplayName))

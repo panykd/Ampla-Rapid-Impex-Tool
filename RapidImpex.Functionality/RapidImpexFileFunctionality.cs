@@ -17,6 +17,7 @@ namespace RapidImpex.Functionality
         private readonly IReportingPointDataReadWriteStrategy _readWriteStrategy;
 
         public RapidImpexFileExportFunctionality(AmplaQueryService amplaQueryService, IReportingPointDataReadWriteStrategy readWriteStrategy)
+            : base()
         {
             _amplaQueryService = amplaQueryService;
             _readWriteStrategy = readWriteStrategy;
@@ -40,7 +41,9 @@ namespace RapidImpex.Functionality
 
             var filePath = Path.Combine(Config.WorkingDirectory, Config.File);
 
-            _readWriteStrategy.WriteToFile(filePath, "Data", reportingPointInfo, records);
+            //_readWriteStrategy.WriteToFile(filePath, "Data", reportingPointInfo, records); //Prasanta - Blocked this
+            _readWriteStrategy.WriteToSheet(filePath, reportingPointInfo, records); //Prasanta -- added this line
+            //_readWriteStrategy.Write(Config.WorkingDirectory, records);
         }
     }
 

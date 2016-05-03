@@ -63,11 +63,12 @@ namespace RapidImpex.Models
             return _causeMappings.TryGetValue(name, out causeCode) ? causeCode : (int?)null;
         }
 
+        //Prasanta :: Corrected - function was searching cause mapping...
         public int? GetClassificationCode(string name)
         {
             int classificationCode;
 
-            return _causeMappings.TryGetValue(name, out classificationCode) ? classificationCode : (int?)null;
+            return _classificationMappings.TryGetValue(name, out classificationCode) ? classificationCode : (int?)null;
         }
 
         public string GetEffectCode(string name)

@@ -1,6 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using System.Text.RegularExpressions;
 using Autofac.Features.Indexed;
+using Fclp;
 using RapidImpex.Ampla;
 using RapidImpex.Ampla.AmplaData200806;
 using RapidImpex.Functionality;
@@ -22,7 +26,7 @@ namespace RapidImpexConsole
 
         public void Run(string[] args)
         {
-            var parser = CreateParser();
+            var parser = new MyCommandLineParser();
 
             RapidImpexConfiguration config;
             var result = parser.Parse(args, out config);
@@ -33,7 +37,7 @@ namespace RapidImpexConsole
             if (config.IsImport)
             {
                 Logger.Information("Loading 'Import' Functionality");
-                
+
                 funcFac = _functionalityFactory["import"];
             }
             else
@@ -51,41 +55,99 @@ namespace RapidImpexConsole
             Logger.Debug("Executing");
             functionality.Execute();
         }
+    }
 
-        public static MyCommandLineParser CreateParser()
+    public class MyCommandLineParser
+    {
+        public ILogger Logger { get; set; }
+
+        public bool Parse(string[] args, out RapidImpexConfiguration configuration)
         {
-            var parser = new MyCommandLineParser();
+            var flagRegex = new Regex("--(?'flag'.+)", RegexOptions.Compiled);
+            var argumentRegex = new Regex("-(?'arg'.+)=(?'value'.+)", RegexOptions.Compiled);
 
-            parser.AddFlagOption("useHttp", new FlagOption<RapidImpexConfiguration>(x => x.UseBasicHttp));
-            parser.AddFlagOption("simple", new FlagOption<RapidImpexConfiguration>(x => x.UseSimpleAuthentication));
-            parser.AddFlagOption("import", new FlagOption<RapidImpexConfiguration>(x => x.IsImport));
+            configuration = new RapidImpexConfiguration();
 
-            parser.AddKeyValueOption("path",
-                new KeyValueOption<RapidImpexConfiguration, string>(x => x.WorkingDirectory)
+            try
+            {
+                // Flags
+                var flags = (from f in args
+                             let m = flagRegex.Match(f)
+                             where m.Success
+                             select m.Groups["flag"].Value).ToArray();
+
+                // Arguments
+                var argValues = (from a in args
+                                 let m = argumentRegex.Match(a)
+                                 where m.Success
+                                 select new KeyValuePair<string, string>(m.Groups["arg"].Value, m.Groups["value"].Value))
+                    .ToDictionary(k => k.Key, v => v.Value);
+
+
+                configuration.UseBasicHttp = flags.Contains("useHttp");
+                configuration.UseSimpleAuthentication = flags.Contains("simple");
+                configuration.IsImport = flags.Contains("import");
+
+                configuration.WorkingDirectory = argValues.ContainsKey("path") ? argValues["path"] : Environment.CurrentDirectory;
+                configuration.Username = argValues.ContainsKey("user") ? argValues["user"] : null;
+                configuration.Password = argValues.ContainsKey("password") ? argValues["password"] : null;
+
+                configuration.File = argValues.ContainsKey("file") ? argValues["file"] : null;
+                configuration.Location = argValues.ContainsKey("location") ? argValues["location"] : null;
+                configuration.Module = argValues.ContainsKey("module") ? argValues["module"] : null;
+
+                //Prasanta :: Added to read the batchrecord value
+                if (argValues.ContainsKey("batchRecord"))
                 {
-                    DefaultValue = Environment.CurrentDirectory
-                });
-            parser.AddKeyValueOption("file", new KeyValueOption<RapidImpexConfiguration, string>(x => x.File));
-            parser.AddKeyValueOption("user", new KeyValueOption<RapidImpexConfiguration, string>(x => x.Username));
-            parser.AddKeyValueOption("password", new KeyValueOption<RapidImpexConfiguration, string>(x => x.Password));
-            parser.AddKeyValueOption("location", new KeyValueOption<RapidImpexConfiguration, string>(x => x.Location));
-            parser.AddKeyValueOption("module", new KeyValueOption<RapidImpexConfiguration, string>(x => x.Module));
+                    int batchRecord = 0;
+                    if (int.TryParse(Convert.ToString(argValues["batchRecord"]), out batchRecord))
+                    {
+                        configuration.BatchRecord = batchRecord;
+                    }
+                    else
+                    {
+                        configuration.BatchRecord = int.MaxValue;
+                    }
+                }
+                else
+                {
+                    configuration.BatchRecord = RapidImpexConsole.Properties.Settings.Default.batchRecord;
+                }
 
-            Func<string, DateTime> localMap =
-                (x) => DateTime.SpecifyKind(DateTime.Parse(x, CultureInfo.InvariantCulture), DateTimeKind.Local);
-            Func<string, DateTime> utcMap =
-                (x) => DateTime.SpecifyKind(DateTime.Parse(x, CultureInfo.InvariantCulture), DateTimeKind.Utc);
+                // Set Start Time
+                if (argValues.ContainsKey("start"))
+                {
+                    var value = argValues["start"];
+                    configuration.StartTime = DateTime.SpecifyKind(DateTime.Parse(value, CultureInfo.InvariantCulture),
+                        DateTimeKind.Local);
+                }
+                else if (argValues.ContainsKey("startUtc"))
+                {
+                    var value = argValues["startUtc"];
+                    configuration.StartTime = DateTime.SpecifyKind(DateTime.Parse(value, CultureInfo.InvariantCulture),
+                        DateTimeKind.Utc);
+                }
 
-            parser.AddKeyValueOption("start",
-                new KeyValueOption<RapidImpexConfiguration, DateTime>(x => x.StartTime) { Mapper = localMap });
-            parser.AddKeyValueOption("startUtc",
-                new KeyValueOption<RapidImpexConfiguration, DateTime>(x => x.StartTime) { Mapper = utcMap });
-            parser.AddKeyValueOption("end",
-                new KeyValueOption<RapidImpexConfiguration, DateTime>(x => x.EndTime) { Mapper = localMap });
-            parser.AddKeyValueOption("endUtc",
-                new KeyValueOption<RapidImpexConfiguration, DateTime>(x => x.EndTime) { Mapper = utcMap });
+                if (argValues.ContainsKey("end"))
+                {
+                    var value = argValues["end"];
+                    configuration.EndTime = DateTime.SpecifyKind(DateTime.Parse(value, CultureInfo.InvariantCulture),
+                        DateTimeKind.Local);
+                }
+                else if (argValues.ContainsKey("endUtc"))
+                {
+                    var value = argValues["endUtc"];
+                    configuration.EndTime = DateTime.SpecifyKind(DateTime.Parse(value, CultureInfo.InvariantCulture),
+                        DateTimeKind.Utc);
+                }
 
-            return parser;
+                return true;
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, "An error has parsing command line arguments");
+                return false;
+            }
         }
     }
 }

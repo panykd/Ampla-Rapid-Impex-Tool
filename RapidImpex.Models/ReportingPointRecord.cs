@@ -34,6 +34,9 @@ namespace RapidImpex.Models
         public string Location { get; set; }
         public string[] Modules { get; set; }
         public string Module { get; set; }
+
+        //Prasanta  :: added this to control the number of records to be submitted on a batch during submit operation
+        public int BatchRecord { get; set; }
         
     }
 }

@@ -9,7 +9,7 @@ namespace RapidImpex.Ampla
 {
     public interface IAmplaQueryService
     {
-        void Initialize(RapidImpexConfiguration configuration);
+        void Initialize(RapidImpexImportExportConfiguration importExportConfiguration);
         IEnumerable<ReportingPoint> GetHeirarchyReportingPointsFor(IEnumerable<AmplaModules> modules);
         ReportingPoint GetReportingPoint(string location, string module);
         IEnumerable<ReportingPointRecord> GetData(ReportingPoint reportingPoint, DateTime startTimeUtc, DateTime endTimeUtc);
@@ -18,17 +18,17 @@ namespace RapidImpex.Ampla
 
     public class AmplaQueryService : IAmplaQueryService
     {
-        private readonly Func<RapidImpexConfiguration, DataWebServiceFactory> _factory;
+        private readonly Func<RapidImpexImportExportConfiguration, DataWebServiceFactory> _factory;
         private DataWebServiceFactory _clientFactory;
 
-        public AmplaQueryService(Func<RapidImpexConfiguration, DataWebServiceFactory> factory)
+        public AmplaQueryService(Func<RapidImpexImportExportConfiguration, DataWebServiceFactory> factory)
         {
             _factory = factory;
         }
 
-        public void Initialize(RapidImpexConfiguration configuration)
+        public void Initialize(RapidImpexImportExportConfiguration importExportConfiguration)
         {
-            _clientFactory = _factory(configuration);
+            _clientFactory = _factory(importExportConfiguration);
         }
 
         public IEnumerable<ReportingPoint> GetHeirarchyReportingPointsFor(IEnumerable<AmplaModules> modules)

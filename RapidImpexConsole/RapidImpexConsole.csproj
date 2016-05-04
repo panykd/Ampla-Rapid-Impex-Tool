@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>RapidImpexConsole</RootNamespace>
     <AssemblyName>RapidImpexConsole</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile />
@@ -87,6 +87,10 @@
     <ProjectReference Include="..\RapidImpex.Ampla\RapidImpex.Ampla.csproj">
       <Project>{777CEA1B-338D-43F3-BF1F-FFD92826FBFB}</Project>
       <Name>RapidImpex.Ampla</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RapidImpex.Common\RapidImpex.Common.csproj">
+      <Project>{238D865D-E32B-4D48-B999-13FF26AF1C0C}</Project>
+      <Name>RapidImpex.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\RapidImpex.Data\RapidImpex.Data.csproj">
       <Project>{BA9825C2-FA91-49C7-A7AE-B5C9AB6AB9D0}</Project>

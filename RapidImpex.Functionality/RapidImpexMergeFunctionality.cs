@@ -2,69 +2,53 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using RapidImpex.Common;
 using RapidImpex.Data;
 using RapidImpex.Models;
-using RapidImpexConsole;
 using Serilog;
 
-namespace BMA.QuikMerge
+namespace RapidImpex.Functionality
 {
-    public class QuikMerge
+    public class RapidImpexMergeFunctionality : IRapidImpexFunctionality
     {
         private readonly IReportingPointDataReadWriteStrategy _readWriteStrategy;
+        public ILogger Logger { get; set; }
 
-        public QuikMerge(IReportingPointDataReadWriteStrategy readWriteStrategy)
+        public RapidImpexMergeFunctionality(IReportingPointDataReadWriteStrategy readWriteStrategy)
         {
             _readWriteStrategy = readWriteStrategy;
         }
 
-        static CommandLineParser<QuikMergeConfiguration> CreateParser()
+        private RapidImpexMergeConfiguration _configuration;
+
+        public void Initialize(string[] args)
         {
-            var parser = new CommandLineParser<QuikMergeConfiguration>();
+            var parser = new RapidImpexMergeConfigurationParser();
 
-            parser.AddKeyValueOption("from", new KeyValueOption<QuikMergeConfiguration, string>(x => x.FromFile));
-            parser.AddKeyValueOption("to", new KeyValueOption<QuikMergeConfiguration, string>(x => x.ToFile));
-        
-            parser.AddKeyValueOption("output", new KeyValueOption<QuikMergeConfiguration, string>(x => x.OutputFile));
-        
-            parser.AddKeyValueOption("key", new KeyValueOption<QuikMergeConfiguration, string>(x => x.MergeField));
-        
-            parser.AddKeyValueOption("path", new KeyValueOption<QuikMergeConfiguration, string>(x => x.WorkingDirectory));
-
-            return parser;
-        }
-
-        private static string[] ExcludedFields(ReportingPoint reportingPoint)
-        {
-            return new string[0];
-        }
-
-        public ILogger Logger { get; set; }
-
-        public void Run(string[] args)
-        {
-            QuikMergeConfiguration configuration;
-
-            var parser = CreateParser();
-
-            if (!parser.Parse(args, out configuration))
+            if (!parser.Parse(args, out _configuration))
             {
                 Logger.Fatal("Unable to parse configuration: '{0}'", string.Join(" | ", args));
-                return;
             }
+            else
+            {
+                Logger.Debug("Configuration Loaded");
+            }
+        }
 
+        public void Execute()
+        {
             // Load FROM files
-            Logger.Information("Loading FROM records in file '{0}' into memory...", configuration.FromFile);
-        
-            var fromReportingPoints = _readWriteStrategy.ReadFromFile(configuration.FromFile);
+            Logger.Information("Loading FROM records in file '{0}' into memory...", _configuration.FromFile);
+
+            var fromReportingPoints = _readWriteStrategy.ReadFromFile(_configuration.FromFile);
             var fromReportingPointsRecordCount = fromReportingPoints.Select(x => x.Value.Count()).Sum();
 
             Logger.Debug("Loaded '{0}' records from '{1}' Reporting Points", fromReportingPointsRecordCount, fromReportingPoints.Count());
 
             // Load TO files
-            Logger.Information("Loading FROM records in file '{0}' into memory...", configuration.FromFile);
+            Logger.Information("Loading FROM records in file '{0}' into memory...", _configuration.FromFile);
 
-            var toReportingPoints = _readWriteStrategy.ReadFromFile(configuration.ToFile);
+            var toReportingPoints = _readWriteStrategy.ReadFromFile(_configuration.ToFile);
             var toReportingPointsRecordCount = toReportingPoints.Select(x => x.Value.Count()).Sum();
 
             Logger.Debug("Loaded '{0}' records from '{1}' Reporting Points", toReportingPointsRecordCount, toReportingPoints.Count());
@@ -84,7 +68,7 @@ namespace BMA.QuikMerge
                     continue;
                 }
 
-                if(trps.Count() > 1)
+                if (trps.Count() > 1)
                 {
                     Logger.Error("Found multiple TO Reporting Points for '{0}'. Skipping", frp.Key.FullName);
                     continue;
@@ -104,9 +88,9 @@ namespace BMA.QuikMerge
 
                 foreach (var innerRecord in frp.Value)
                 {
-                    var mergeValue = innerRecord.Values[configuration.MergeField];
+                    var mergeValue = innerRecord.Values[_configuration.MergeField];
 
-                    var outerRecords = outerReportingPointRecords.Where(x => x.Values[configuration.MergeField].Equals(mergeValue)).ToArray();
+                    var outerRecords = outerReportingPointRecords.Where(x => x.Values[_configuration.MergeField].Equals(mergeValue)).ToArray();
 
                     if (!outerRecords.Any())
                     {
@@ -148,7 +132,7 @@ namespace BMA.QuikMerge
                     foreach (var rv in innerRecord.Values)
                     {
                         if (!outerRecord.Values.ContainsKey(rv.Key) ||
-                            ExcludedFields(innerRecord.ReportingPoint).Contains(rv.Key))
+                            ExcludedFields().Contains(rv.Key))
                         {
                             mergedRecord.Values.Add(rv.Key, outerRecord.Values[rv.Key]);
                         }
@@ -161,11 +145,58 @@ namespace BMA.QuikMerge
                     mergedRecords.Add(mergedRecord);
                 }
 
-                var filePath = Path.Combine(configuration.WorkingDirectory ?? Environment.CurrentDirectory, configuration.OutputFile);
+                var filePath = Path.Combine(_configuration.WorkingDirectory ?? Environment.CurrentDirectory, _configuration.OutputFile);
                 Logger.Information("Writing '{0}' records to file '{1}'", mergedRecords.Count(), filePath);
 
                 _readWriteStrategy.WriteToSheet(filePath, fromReportingPoint.Key, mergedRecords);
             }
         }
+
+        private static string[] ExcludedFields()
+        {
+            return new string[0];
+        }
+    }
+
+    public class RapidImpexMergeConfigurationParser : ICommandLineParser<RapidImpexMergeConfiguration>
+    {
+        private CommandLineParser<RapidImpexMergeConfiguration> _parser;
+
+        public RapidImpexMergeConfigurationParser()
+        {
+            _parser = new CommandLineParser<RapidImpexMergeConfiguration>();
+
+            _parser.AddKeyValueOption("from", new KeyValueOption<RapidImpexMergeConfiguration, string>(x => x.FromFile));
+            _parser.AddKeyValueOption("to", new KeyValueOption<RapidImpexMergeConfiguration, string>(x => x.ToFile));
+
+            _parser.AddKeyValueOption("output", new KeyValueOption<RapidImpexMergeConfiguration, string>(x => x.OutputFile));
+
+            _parser.AddKeyValueOption("key", new KeyValueOption<RapidImpexMergeConfiguration, string>(x => x.MergeField));
+
+            _parser.AddKeyValueOption("path", new KeyValueOption<RapidImpexMergeConfiguration, string>(x => x.WorkingDirectory));
+        }
+
+        public bool Parse(string[] args, out RapidImpexMergeConfiguration config)
+        {
+            RapidImpexMergeConfiguration configuration;
+
+            var result = _parser.Parse(args, out configuration);
+
+            config = configuration;
+
+            return result;
+        }
+    }
+
+    public class RapidImpexMergeConfiguration
+    {
+        public string FromFile { get; set; }
+        public string ToFile { get; set; }
+
+        public string OutputFile { get; set; }
+
+        public string WorkingDirectory { get; set; }
+
+        public string MergeField { get; set; }
     }
 }

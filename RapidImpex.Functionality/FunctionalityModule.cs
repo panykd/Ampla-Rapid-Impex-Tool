@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Autofac;
+﻿using Autofac;
 
 namespace RapidImpex.Functionality
 {
@@ -17,6 +12,10 @@ namespace RapidImpex.Functionality
 
             builder.RegisterType<RapidImpexFileExportFunctionality>()
                 .Named<IRapidImpexFunctionality>("export")
+                .SingleInstance();
+
+            builder.RegisterType<RapidImpexMergeFunctionality>()
+                .Named<IRapidImpexFunctionality>("merge")
                 .SingleInstance();
         }
     }

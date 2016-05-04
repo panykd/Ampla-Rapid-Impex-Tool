@@ -13,21 +13,21 @@ namespace RapidImpex.Ampla
         public ILogger Logger { get; set; }
 
         private DataWebServiceFactory _clientFactory;
-        private readonly Func<RapidImpexConfiguration, DataWebServiceFactory> _factory;
+        private readonly Func<RapidImpexImportExportConfiguration, DataWebServiceFactory> _factory;
         private readonly AmplaQueryService _amplaQueryService;
         private int _batchRecord;
 
-        public AmplaCommandService(Func<RapidImpexConfiguration, DataWebServiceFactory> factory, AmplaQueryService amplaQueryService)
+        public AmplaCommandService(Func<RapidImpexImportExportConfiguration, DataWebServiceFactory> factory, AmplaQueryService amplaQueryService)
         {
             _factory = factory;
             _amplaQueryService = amplaQueryService;
         }
 
-        public void Initialize(RapidImpexConfiguration configuration)
+        public void Initialize(RapidImpexImportExportConfiguration importExportConfiguration)
         {
-            _clientFactory = _factory(configuration);
-            _amplaQueryService.Initialize(configuration);
-            _batchRecord = configuration.BatchRecord;
+            _clientFactory = _factory(importExportConfiguration);
+            _amplaQueryService.Initialize(importExportConfiguration);
+            _batchRecord = importExportConfiguration.BatchRecord;
         }
 
         //Prasanta :: Modified this function to submit records in a batch instead of submittin at a go

@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>RapidImpex.Functionality</RootNamespace>
     <AssemblyName>RapidImpex.Functionality</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
@@ -61,6 +61,7 @@
     <Compile Include="RapidImpexExportFunctionality.cs" />
     <Compile Include="RapidImpexFileFunctionality.cs" />
     <Compile Include="RapidImpexImportFunctionality.cs" />
+    <Compile Include="RapidImpexMergeFunctionality.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -69,6 +70,10 @@
     <ProjectReference Include="..\RapidImpex.Ampla\RapidImpex.Ampla.csproj">
       <Project>{777cea1b-338d-43f3-bf1f-ffd92826fbfb}</Project>
       <Name>RapidImpex.Ampla</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RapidImpex.Common\RapidImpex.Common.csproj">
+      <Project>{238D865D-E32B-4D48-B999-13FF26AF1C0C}</Project>
+      <Name>RapidImpex.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\RapidImpex.Data\RapidImpex.Data.csproj">
       <Project>{BA9825C2-FA91-49C7-A7AE-B5C9AB6AB9D0}</Project>

@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Autofac.Features.ResolveAnything;
 using RapidImpex.Ampla;
 using RapidImpex.Data;
-using RapidImpex.Models;
 
 namespace RapidImpex.Functionality
 {
@@ -20,14 +19,6 @@ namespace RapidImpex.Functionality
             _amplaQueryService = amplaQueryService;
             _readWriteStrategy = readWriteStrategy;
             _amplaCommandService = amplaCommandService;
-        }
-
-        public override void Initialize(RapidImpexConfiguration configuration)
-        {
-            base.Initialize(configuration);
-
-            _amplaQueryService.Initialize(configuration);
-            _amplaCommandService.Initialize(configuration);
         }
 
         public override void Execute()

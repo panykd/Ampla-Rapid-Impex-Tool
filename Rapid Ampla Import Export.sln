@@ -28,7 +28,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RapidImpex.Data", "RapidImp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RapidImpex.Functionality", "RapidImpex.Functionality\RapidImpex.Functionality.csproj", "{20AA74E1-C697-458E-AC95-71DB34E331C7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BMA.QuikMerge", "BMA.QuikMerge\BMA.QuikMerge.csproj", "{A8921FF2-6F80-4257-9437-9B0928B6B99C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RapidImpex.Common", "RapidImpex.Common\RapidImpex.Common.csproj", "{238D865D-E32B-4D48-B999-13FF26AF1C0C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -60,10 +60,10 @@ Global
 		{20AA74E1-C697-458E-AC95-71DB34E331C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{20AA74E1-C697-458E-AC95-71DB34E331C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{20AA74E1-C697-458E-AC95-71DB34E331C7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A8921FF2-6F80-4257-9437-9B0928B6B99C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A8921FF2-6F80-4257-9437-9B0928B6B99C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A8921FF2-6F80-4257-9437-9B0928B6B99C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A8921FF2-6F80-4257-9437-9B0928B6B99C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{238D865D-E32B-4D48-B999-13FF26AF1C0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{238D865D-E32B-4D48-B999-13FF26AF1C0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{238D865D-E32B-4D48-B999-13FF26AF1C0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{238D865D-E32B-4D48-B999-13FF26AF1C0C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,14 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text.RegularExpressions;
 using Autofac.Features.Indexed;
-using Fclp;
-using RapidImpex.Ampla;
-using RapidImpex.Ampla.AmplaData200806;
+using RapidImpex.Common;
 using RapidImpex.Functionality;
-using RapidImpex.Models;
 using Serilog;
 
 namespace RapidImpexConsole
@@ -17,43 +10,42 @@ namespace RapidImpexConsole
     {
         public ILogger Logger { get; set; }
 
-        private readonly IIndex<string, Func<RapidImpexConfiguration, IRapidImpexFunctionality>> _functionalityFactory;
+        private readonly IIndex<string, Func<IRapidImpexFunctionality>> _functionalityFactory;
 
-        public RapidImpex(IIndex<string, Func<RapidImpexConfiguration, IRapidImpexFunctionality>> functionalityFactory)
+        public RapidImpex(IIndex<string, Func<IRapidImpexFunctionality>> functionalityFactory)
         {
             _functionalityFactory = functionalityFactory;
         }
 
         public void Run(string[] args)
         {
-            var parser = new MyCommandLineParser();
+            // Configure and Parse out only the required operation from the console arguments
+            var parser = new CommandLineParser<RapidImpexConfiguration>();
+            parser.AddKeyValueOption("operation", new KeyValueOption<RapidImpexConfiguration,string>(x => x.Functionality));
 
             RapidImpexConfiguration config;
-            var result = parser.Parse(args, out config);
-
-
-            Func<RapidImpexConfiguration, IRapidImpexFunctionality> funcFac;
-
-            if (config.IsImport)
+            if (!parser.Parse(args, out config))
             {
-                Logger.Information("Loading 'Import' Functionality");
-                
-                funcFac = _functionalityFactory["import"];
-            }
-            else
-            {
-                Logger.Information("Loading 'Export' Functionality");
-
-                funcFac = _functionalityFactory["export"];
+                Logger.Error("Enable to parse configuration");
+                return;
             }
 
-            var functionality = funcFac(config);
+            // Get the Appropriate Fucntionality
+            Logger.Information("Loading '{0}' Functionality", config.Functionality);
+            var funcFac = _functionalityFactory[config.Functionality.ToLowerInvariant()];
+
+            var functionality = funcFac();
 
             Logger.Debug("Initializing");
-            functionality.Initialize(config);
+            functionality.Initialize(args);
 
             Logger.Debug("Executing");
             functionality.Execute();
         }
+    }
+
+    public class RapidImpexConfiguration
+    {
+        public string Functionality { get; set; }
     }
 }

@@ -2,7 +2,7 @@ using System;
 
 namespace RapidImpex.Models
 {
-    public class RapidImpexConfiguration
+    public class RapidImpexImportExportConfiguration
     {
         public string WorkingDirectory { get; set; }
         public string File { get; set; }

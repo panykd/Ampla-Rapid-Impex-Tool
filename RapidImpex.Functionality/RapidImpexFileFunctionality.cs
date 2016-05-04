@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using RapidImpex.Ampla;
 using RapidImpex.Data;
-using RapidImpex.Models;
 
 namespace RapidImpex.Functionality
 {
@@ -21,13 +20,6 @@ namespace RapidImpex.Functionality
         {
             _amplaQueryService = amplaQueryService;
             _readWriteStrategy = readWriteStrategy;
-        }
-
-        public override void Initialize(RapidImpexConfiguration configuration)
-        {
-            base.Initialize(configuration);
-
-            _amplaQueryService.Initialize(configuration);
         }
 
         public override void Execute()
@@ -60,14 +52,6 @@ namespace RapidImpex.Functionality
             _amplaQueryService = amplaQueryService;
             _amplaCommandService = amplaCommandService;
             _readWriteStrategy = readWriteStrategy;
-        }
-
-        public override void Initialize(RapidImpexConfiguration configuration)
-        {
-            base.Initialize(configuration);
-
-            _amplaQueryService.Initialize(configuration);
-            _amplaCommandService.Initialize(configuration);
         }
 
         public override void Execute()

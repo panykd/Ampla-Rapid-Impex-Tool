@@ -27,7 +27,7 @@ namespace BMA.QuikMerge
             builder.RegisterInstance(Mock.Of<IAmplaQueryService>()).As<IAmplaQueryService>();
 
             // Register Functionality
-            builder.RegisterType<QuikMerge>()
+            builder.RegisterType<global::BMA.QuikMerge.QuikMerge>()
                 .SingleInstance();
 
             return builder.Build();
@@ -39,7 +39,7 @@ namespace BMA.QuikMerge
 
             var container = BootstrapAutofac();
 
-            var app = container.Resolve<QuikMerge>();
+            var app = container.Resolve<global::BMA.QuikMerge.QuikMerge>();
 
             app.Run(args);
         }

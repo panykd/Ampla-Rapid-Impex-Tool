@@ -149,6 +149,13 @@ namespace RapidImpex.Data
                         record.IsConfirmed = ReadAndSetIsEmpty<bool>(confirmedValue, ref rowEmpty);
                         record.IsDeleted = ReadAndSetIsEmpty<bool>(deletedValue, ref rowEmpty);
                         
+                        //for (var i = 0; i < indexToFieldLookup.Count(); i++)
+                        //{
+                        //    var field = indexToFieldLookup[i];
+                        //    var fieldValue = worksheet.Cells[currentRow, dataStartCol + 3 + i].Text;
+                        //    record.Values[field.Id] = ReadAndSetIsEmpty(fieldValue, field.FieldType, ref rowEmpty);
+                        //}
+
                         foreach (var kvp in indexToFieldLookup)
                         {
                             var fieldValue = worksheet.Cells[currentRow, kvp.Key].Text;
@@ -253,6 +260,7 @@ namespace RapidImpex.Data
                 var worksheet = worksheets.Add(worksheetName);
 
                 // Summary
+
                 worksheet.Cells[summaryStartRow + 0, summaryStartCol + 0].Value = "Module";
                 worksheet.Cells[summaryStartRow + 0, summaryStartCol + 1].Value = reportingPoint.Module;
 
@@ -343,7 +351,7 @@ namespace RapidImpex.Data
 
         private static ReportingPointField[] GetReportingPointFields(ReportingPoint reportingPoint)
         {
-            var excludedFields = new[] {"Id", "Confirmed", "Deleted"};
+            var excludedFields = new[] { "Id", "Confirmed", "Deleted" };
 
             var fields = reportingPoint.Fields.Values
                 .Where(x => !excludedFields.Contains(x.Id) && !excludedFields.Contains(x.DisplayName))

@@ -15,6 +15,7 @@ namespace RapidImpex.Ampla
         private DataWebServiceFactory _clientFactory;
         private readonly Func<RapidImpexConfiguration, DataWebServiceFactory> _factory;
         private readonly AmplaQueryService _amplaQueryService;
+        private int _batchRecord;
 
         public AmplaCommandService(Func<RapidImpexConfiguration, DataWebServiceFactory> factory, AmplaQueryService amplaQueryService)
         {
@@ -26,13 +27,16 @@ namespace RapidImpex.Ampla
         {
             _clientFactory = _factory(configuration);
             _amplaQueryService.Initialize(configuration);
+            _batchRecord = configuration.BatchRecord;
         }
 
+        //Prasanta :: Modified this function to submit records in a batch instead of submittin at a go
         public void SubmitRecords(IEnumerable<ReportingPointRecord> records)
         {
             var submitDataRecords = new List<SubmitDataRecord>();
 
             IAmplaVersionModifier versionModifier = new AmplaVersionModifier();
+            int ctr = 0;
 
             foreach (var record in records)
             {
@@ -56,10 +60,11 @@ namespace RapidImpex.Ampla
                     where
                         !rpf.Value.IsReadOnly &&
                         !versionModifier.AdditionalReadonlyFields(reportingPoint).Contains(rpf.Value.Id) &&
-                        !versionModifier.AdditionalReadonlyFields(reportingPoint).Contains(rpf.Value.DisplayName)
+                        !versionModifier.AdditionalReadonlyFields(reportingPoint).Contains(rpf.Value.DisplayName) &&
+                        !((rpf.Value.DisplayName == "End Time") && (string.IsNullOrWhiteSpace(Convert.ToString(fv.Value))))
                     select new Field()
                     {
-                        Name = versionModifier.AmplaFieldName(reportingPoint, fv.Key),
+                        Name = versionModifier.AmplaFieldDisplayName(reportingPoint, fv.Key),
                         Value = ToAmplaValueString(fv.Value)
                     }).ToList();
 
@@ -80,7 +85,7 @@ namespace RapidImpex.Ampla
                 else
                 {
                     var causeLocation = causeLocationField.Value;
-
+                    //Console.WriteLine(causeLocation);
                     var relationshipMatrix =
                         new Lazy<RelationshipMatrix>(
                             () => _amplaQueryService.GetRelationshipMatrixFor(reportingPoint, causeLocation));
@@ -110,34 +115,7 @@ namespace RapidImpex.Ampla
                             fieldValues.Remove(causeField);
                         }
                     }
-
-                    // Classificiation Field
-
-                    if (classificationField == null)
-                    {
-                        // Do nothing
-                    }
-                    else if (string.IsNullOrWhiteSpace(classificationField.Value))
-                    {
-                        fieldValues.Remove(causeField);
-                    }
-                    else
-                    {
-                        var code = relationshipMatrix.Value.GetCauseCode(classificationField.Value);
-
-                        if (code.HasValue)
-                        {
-                            classificationField.Value = code.Value.ToString();
-                        }
-                        else
-                        {
-                            Logger.Error(
-                                "Record: {0}\t\tUnable to find Classification '{1}' for '{2}'@'{3}'. Skipping field.",
-                                record.Id, classificationField.Value, reportingPoint.FullName, causeLocation);
-                            fieldValues.Remove(classificationField);
-                        }
-                    }
-
+                   
                     // Effect Field
 
                     if (effectField == null)
@@ -163,14 +141,62 @@ namespace RapidImpex.Ampla
                             fieldValues.Remove(effectField);
                         }
                     }
+
+                    // Classificiation Field
+
+                    if (classificationField == null)
+                    {
+                        // Do nothing
+                    }
+                    else if (string.IsNullOrWhiteSpace(classificationField.Value))
+                    {
+                        fieldValues.Remove(classificationField);
+                    }
+                    else
+                    {
+                        //Prasanta :: calling wrong method - corrected
+                        var code = relationshipMatrix.Value.GetClassificationCode(classificationField.Value);
+
+                        if (code.HasValue)
+                        {
+                            classificationField.Value = code.Value.ToString();
+                        }
+                        else
+                        {
+                            Logger.Error(
+                                "Record: {0}\t\tUnable to find Classification '{1}' for '{2}'@'{3}'. Skipping field.",
+                                record.Id, classificationField.Value, reportingPoint.FullName, causeLocation);
+                            fieldValues.Remove(classificationField);
+                        }
+                    }
                 }
 
                 submitDataRecord.Fields = fieldValues.ToArray();
 
+                //foreach (Field fld in submitDataRecord.Fields)
+                //{
+                //    Console.WriteLine("Field Name-" + Convert.ToString(fld.Name));
+                //    Console.WriteLine("Value-" + Convert.ToString(fld.Value));
+                //}
+
                 // Handle Record Values
                 submitDataRecords.Add(submitDataRecord);
+
+                ctr++;
+                if (ctr == _batchRecord)
+                {
+                    SubmitDataRecord(submitDataRecords);
+
+                    ctr = 0;
+                    submitDataRecords = new List<SubmitDataRecord>();
+                }
             }
 
+            SubmitDataRecord(submitDataRecords);
+        }
+
+        private void SubmitDataRecord(List<SubmitDataRecord> submitDataRecords)
+        {
             var client = _clientFactory.GetClient();
 
             if (submitDataRecords.Any())
@@ -195,6 +221,7 @@ namespace RapidImpex.Ampla
                 return ((DateTime)value).AsAmplaDateTime();
             }
 
+            //Console.WriteLine("Value-" + Convert.ToString(value));
             return value.ToString();
         }
 
@@ -262,6 +289,7 @@ namespace RapidImpex.Ampla
     public interface IAmplaVersionModifier
     {
         string AmplaFieldName(ReportingPoint reportingPoint, string fieldName);
+        string AmplaFieldDisplayName(ReportingPoint reportingPoint, string fieldName);
         string[] AdditionalReadonlyFields(ReportingPoint reportingPoint);
     }
 
@@ -270,6 +298,7 @@ namespace RapidImpex.Ampla
         public string AmplaFieldName(ReportingPoint reportingPoint, string fieldName)
         {
             var rpf = reportingPoint.Fields.First(x => fieldName == x.Value.Id || fieldName == x.Value.DisplayName).Value;
+            //Console.WriteLine("Field-" + Convert.ToString(fieldName));
 
             switch (rpf.Id)
             {
@@ -284,6 +313,14 @@ namespace RapidImpex.Ampla
             return fieldName;
         }
 
+        public string AmplaFieldDisplayName(ReportingPoint reportingPoint, string fieldName)
+        {
+            var rpf = reportingPoint.Fields.First(x => fieldName == x.Value.Id || fieldName == x.Value.DisplayName).Value;
+
+            return rpf.DisplayName;
+        }
+
+        //Prasanta :: blocked the confirmedby and confirmeddatetime as we need to update these two fields 
         public string[] AdditionalReadonlyFields(ReportingPoint reportingPoint)
         {
             return new []
@@ -292,8 +329,8 @@ namespace RapidImpex.Ampla
                     "CreatedBy",
                     "IsManual",
                     "CreatedDateTime",
-                    "ConfirmedBy",
-                    "ConfirmedDateTime",
+                    //"ConfirmedBy",
+                    //"ConfirmedDateTime",
                     "IsDeleted",
                     "ObjectId",
                     "CauseLocationEquipmentId",

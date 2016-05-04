@@ -1,6 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using System.Text.RegularExpressions;
 using Autofac.Features.Indexed;
+using Fclp;
 using RapidImpex.Ampla;
 using RapidImpex.Ampla.AmplaData200806;
 using RapidImpex.Functionality;
@@ -22,7 +26,7 @@ namespace RapidImpexConsole
 
         public void Run(string[] args)
         {
-            var parser = CreateParser();
+            var parser = new MyCommandLineParser();
 
             RapidImpexConfiguration config;
             var result = parser.Parse(args, out config);
@@ -50,42 +54,6 @@ namespace RapidImpexConsole
 
             Logger.Debug("Executing");
             functionality.Execute();
-        }
-
-        public static MyCommandLineParser<RapidImpexConfiguration> CreateParser()
-        {
-            var parser = new MyCommandLineParser<RapidImpexConfiguration>();
-
-            parser.AddFlagOption("useHttp", new FlagOption<RapidImpexConfiguration>(x => x.UseBasicHttp));
-            parser.AddFlagOption("simple", new FlagOption<RapidImpexConfiguration>(x => x.UseSimpleAuthentication));
-            parser.AddFlagOption("import", new FlagOption<RapidImpexConfiguration>(x => x.IsImport));
-
-            parser.AddKeyValueOption("path",
-                new KeyValueOption<RapidImpexConfiguration, string>(x => x.WorkingDirectory)
-                {
-                    DefaultValue = Environment.CurrentDirectory
-                });
-            parser.AddKeyValueOption("file", new KeyValueOption<RapidImpexConfiguration, string>(x => x.File));
-            parser.AddKeyValueOption("user", new KeyValueOption<RapidImpexConfiguration, string>(x => x.Username));
-            parser.AddKeyValueOption("password", new KeyValueOption<RapidImpexConfiguration, string>(x => x.Password));
-            parser.AddKeyValueOption("location", new KeyValueOption<RapidImpexConfiguration, string>(x => x.Location));
-            parser.AddKeyValueOption("module", new KeyValueOption<RapidImpexConfiguration, string>(x => x.Module));
-
-            Func<string, DateTime> localMap =
-                (x) => DateTime.SpecifyKind(DateTime.Parse(x, CultureInfo.InvariantCulture), DateTimeKind.Local);
-            Func<string, DateTime> utcMap =
-                (x) => DateTime.SpecifyKind(DateTime.Parse(x, CultureInfo.InvariantCulture), DateTimeKind.Utc);
-
-            parser.AddKeyValueOption("start",
-                new KeyValueOption<RapidImpexConfiguration, DateTime>(x => x.StartTime) { Mapper = localMap });
-            parser.AddKeyValueOption("startUtc",
-                new KeyValueOption<RapidImpexConfiguration, DateTime>(x => x.StartTime) { Mapper = utcMap });
-            parser.AddKeyValueOption("end",
-                new KeyValueOption<RapidImpexConfiguration, DateTime>(x => x.EndTime) { Mapper = localMap });
-            parser.AddKeyValueOption("endUtc",
-                new KeyValueOption<RapidImpexConfiguration, DateTime>(x => x.EndTime) { Mapper = utcMap });
-
-            return parser;
         }
     }
 }

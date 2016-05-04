@@ -9,7 +9,7 @@ namespace RapidImpex.Data
         Dictionary<ReportingPoint, IEnumerable<ReportingPointRecord>> ReadFromFile(string inputPath);
 
         void Write(string outputPath, IEnumerable<ReportingPointRecord> records);
+        void WriteToSheet(string filePath, ReportingPoint reportingPoint, IEnumerable<ReportingPointRecord> records); //Prasanta :: added this method
         void WriteToFile(string filePath, string worksheetName, ReportingPoint reportingPoint, IEnumerable<ReportingPointRecord> records);
-        void WriteToSheet(string filePath, ReportingPoint reportingPoint, IEnumerable<ReportingPointRecord> records);
     }
 }

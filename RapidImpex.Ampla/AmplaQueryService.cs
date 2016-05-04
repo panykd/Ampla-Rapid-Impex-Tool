@@ -93,7 +93,7 @@ namespace RapidImpex.Ampla
             return reportingPoint;
         }
 
-        private Dictionary<string, ReportingPointField> GetReportingPointFieldInformation(ReportingPoint reportingPoint)
+        public Dictionary<string, ReportingPointField> GetReportingPointFieldInformation(ReportingPoint reportingPoint)
         {
             var _client = _clientFactory.GetClient();
 
@@ -150,15 +150,17 @@ namespace RapidImpex.Ampla
             var request = new GetDataRequest
             {
                 Credentials = _clientFactory.GetCredentials(),
-
+                
+                //Prasanta :: removed the sample period parameter as we have to filter by the last modified date
+                //Prasanta :: Bring back the filter by sample period - 20160415
                 Filter = new DataFilter
                 {
                     Location = reportingPoint.FullName,
-                    SamplePeriod =
-                        string.Format(">= {0} AND < {1}", startTimeUtc.AsAmplaDateTime(), endTimeUtc.AsAmplaDateTime())
+                    SamplePeriod = string.Format(">= {0} AND < {1}", startTimeUtc.AsAmplaDateTime(), endTimeUtc.AsAmplaDateTime())
+                    
                 },
                 Metadata = false,
-                OutputOptions = new GetDataOutputOptions { ResolveIdentifiers = true },
+                OutputOptions = new GetDataOutputOptions { ResolveIdentifiers = true }, // TODO: Verify this matches what is returned from AllowedValues }
                 View = new GetDataView
                 {
                     Context = NavigationContext.Plant,
@@ -166,6 +168,13 @@ namespace RapidImpex.Ampla
                     Module = reportingPoint.Module.AsAmplaModule()
                 }
             };
+
+            //Prasanta : Added the filter to get data based on the modified time
+            //Prasanta : Removed this filter - 20160415
+            //request.Filter.Criteria = new FilterEntry[1];
+            //request.Filter.Criteria[0] = new FilterEntry();
+            //request.Filter.Criteria[0].Name = "LastModified";
+            //request.Filter.Criteria[0].Value = string.Format(">= {0} AND < {1}", startTimeUtc.AsAmplaDateTime(), endTimeUtc.AsAmplaDateTime());
 
             var data = _client.GetData(new GetDataRequestMessage(request));
 

@@ -15,6 +15,100 @@ using Serilog;
 
 namespace RapidImpexConsole
 {
+    public class MyCommandLineParser
+    {
+        public ILogger Logger { get; set; }
+
+        public bool Parse(string[] args, out RapidImpexConfiguration configuration)
+        {
+            var flagRegex = new Regex("--(?'flag'.+)", RegexOptions.Compiled);
+            var argumentRegex = new Regex("-(?'arg'.+)=(?'value'.+)", RegexOptions.Compiled);
+
+            configuration = new RapidImpexConfiguration();
+
+            try
+            {
+                // Flags
+                var flags = (from f in args
+                    let m = flagRegex.Match(f)
+                    where m.Success
+                    select m.Groups["flag"].Value).ToArray();
+
+                // Arguments
+                var argValues = (from a in args
+                    let m = argumentRegex.Match(a)
+                    where m.Success
+                    select new KeyValuePair<string, string>(m.Groups["arg"].Value, m.Groups["value"].Value))
+                    .ToDictionary(k => k.Key, v => v.Value);
+
+
+                configuration.UseBasicHttp = flags.Contains("useHttp");
+                configuration.UseSimpleAuthentication = flags.Contains("simple");
+                configuration.IsImport = flags.Contains("import");
+
+                configuration.WorkingDirectory = argValues.ContainsKey("path") ? argValues["path"] : Environment.CurrentDirectory;
+                configuration.Username = argValues.ContainsKey("user") ? argValues["user"] : null;
+                configuration.Password = argValues.ContainsKey("password") ? argValues["password"] : null;
+
+                configuration.File = argValues.ContainsKey("file") ? argValues["file"] : null;
+                configuration.Location = argValues.ContainsKey("location") ? argValues["location"] : null;
+                configuration.Module = argValues.ContainsKey("module") ? argValues["module"] : null;
+
+                //Prasanta :: Added to read the batchrecord value
+                if (argValues.ContainsKey("batchRecord"))
+                {
+                    int batchRecord = 0;
+                    if (int.TryParse(Convert.ToString(argValues["batchRecord"]), out batchRecord))
+                    {
+                        configuration.BatchRecord = batchRecord;
+                    }
+                    else
+                    {
+                        configuration.BatchRecord = int.MaxValue;
+                    }
+                }
+                else
+                {
+                    configuration.BatchRecord = RapidImpexConsole.Properties.Settings.Default.batchRecord;
+                }
+
+                // Set Start Time
+                if (argValues.ContainsKey("start"))
+                {
+                    var value = argValues["start"];
+                    configuration.StartTime = DateTime.SpecifyKind(DateTime.Parse(value, CultureInfo.InvariantCulture),
+                        DateTimeKind.Local);
+                }
+                else if (argValues.ContainsKey("startUtc"))
+                {
+                    var value = argValues["startUtc"];
+                    configuration.StartTime = DateTime.SpecifyKind(DateTime.Parse(value, CultureInfo.InvariantCulture),
+                        DateTimeKind.Utc);
+                }
+
+                if (argValues.ContainsKey("end"))
+                {
+                    var value = argValues["end"];
+                    configuration.EndTime = DateTime.SpecifyKind(DateTime.Parse(value, CultureInfo.InvariantCulture),
+                        DateTimeKind.Local);
+                }
+                else if (argValues.ContainsKey("endUtc"))
+                {
+                    var value = argValues["endUtc"];
+                    configuration.EndTime = DateTime.SpecifyKind(DateTime.Parse(value, CultureInfo.InvariantCulture),
+                        DateTimeKind.Utc);
+                }
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, "An error has parsing command line arguments");
+                return false;
+            }
+        }
+    }
+
     public interface IFlagOption<in TConfig>
     {
         void SetFlag(TConfig config);
@@ -78,32 +172,32 @@ namespace RapidImpexConsole
         }
     }
 
-    public class MyCommandLineParser
+    public class CommandLineParser<TConfig> where TConfig : new()
     {
         public ILogger Logger { get; set; }
 
-        private readonly Dictionary<string, IFlagOption<RapidImpexConfiguration>> _flagOptions =
-            new Dictionary<string, IFlagOption<RapidImpexConfiguration>>();
+        private readonly Dictionary<string, IFlagOption<TConfig>> _flagOptions =
+            new Dictionary<string, IFlagOption<TConfig>>();
 
-        private readonly Dictionary<string, IKeyValueOption<RapidImpexConfiguration>> _keyValueOptions =
-            new Dictionary<string, IKeyValueOption<RapidImpexConfiguration>>();
+        private readonly Dictionary<string, IKeyValueOption<TConfig>> _keyValueOptions =
+            new Dictionary<string, IKeyValueOption<TConfig>>();
 
-        public void AddFlagOption(string flag, IFlagOption<RapidImpexConfiguration> flagOption)
+        public void AddFlagOption(string flag, IFlagOption<TConfig> flagOption)
         {
             _flagOptions.Add(flag, flagOption);
         }
 
-        public void AddKeyValueOption(string key, IKeyValueOption<RapidImpexConfiguration> keyValueOption)
+        public void AddKeyValueOption(string key, IKeyValueOption<TConfig> keyValueOption)
         {
             _keyValueOptions.Add(key, keyValueOption);
         }
 
-        public bool Parse(string[] args, out RapidImpexConfiguration configuration)
+        public bool Parse(string[] args, out TConfig configuration)
         {
             var flagRegex = new Regex("--(?'flag'.+)", RegexOptions.Compiled);
             var argumentRegex = new Regex("-(?'arg'.+)=(?'value'.+)", RegexOptions.Compiled);
 
-            configuration = new RapidImpexConfiguration();
+            configuration = new TConfig();
 
             try
             {

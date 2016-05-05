@@ -18,6 +18,9 @@ namespace RapidImpex.Functionality
         {
             _amplaQueryService = amplaQueryService;
             _readWriteStrategy = readWriteStrategy;
+
+            _readWriteStrategy.AmplaQueryService = amplaQueryService;
+
             _amplaCommandService = amplaCommandService;
         }
 

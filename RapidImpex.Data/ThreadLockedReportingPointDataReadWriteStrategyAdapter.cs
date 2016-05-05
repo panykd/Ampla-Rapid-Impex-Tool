@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
+using RapidImpex.Ampla;
 using RapidImpex.Models;
 
 namespace RapidImpex.Data
@@ -64,6 +65,12 @@ namespace RapidImpex.Data
             _instance.WriteToFile(filePath, worksheetName, reportingPoint, records);
 
             _locker.ExitWriteLock();
+        }
+
+        public IAmplaQueryService AmplaQueryService
+        {
+            get { return _instance.AmplaQueryService; }
+            set { _instance.AmplaQueryService = value; }
         }
     }
 }

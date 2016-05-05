@@ -22,12 +22,12 @@ namespace RapidImpex.Data
         const int summaryStartCol = 1;
 
         private readonly IMultiPartFileNamingStrategy _namingStrategy;
-        private readonly IAmplaQueryService _amplaQueryService;
 
-        public XlsxReportingPointDataStrategy(IMultiPartFileNamingStrategy namingStrategy, IAmplaQueryService amplaQueryService)
+        public IAmplaQueryService AmplaQueryService { get; set; }
+
+        public XlsxReportingPointDataStrategy(IMultiPartFileNamingStrategy namingStrategy)
         {
             _namingStrategy = namingStrategy;
-            _amplaQueryService = amplaQueryService;
         }
 
         public IEnumerable<ReportingPointRecord> Read(string inputPath)
@@ -72,8 +72,7 @@ namespace RapidImpex.Data
                     var module = worksheet.Cells[summaryStartRow + 0, summaryStartCol + 1].Text;
                     var location = worksheet.Cells[summaryStartRow + 1, summaryStartCol + 1].Text;
 
-                    var reportingPoint = _amplaQueryService.GetReportingPoint(location, module) ?? 
-                        new ReportingPoint() {FullName = location, Module = module};
+                    var reportingPoint = AmplaQueryService != null ? AmplaQueryService.GetReportingPoint(location, module) : new ReportingPoint() {FullName = location, Module = module};
 
                     ReportingPointField[] fields;
 
@@ -149,13 +148,6 @@ namespace RapidImpex.Data
                         record.IsConfirmed = ReadAndSetIsEmpty<bool>(confirmedValue, ref rowEmpty);
                         record.IsDeleted = ReadAndSetIsEmpty<bool>(deletedValue, ref rowEmpty);
                         
-                        //for (var i = 0; i < indexToFieldLookup.Count(); i++)
-                        //{
-                        //    var field = indexToFieldLookup[i];
-                        //    var fieldValue = worksheet.Cells[currentRow, dataStartCol + 3 + i].Text;
-                        //    record.Values[field.Id] = ReadAndSetIsEmpty(fieldValue, field.FieldType, ref rowEmpty);
-                        //}
-
                         foreach (var kvp in indexToFieldLookup)
                         {
                             var fieldValue = worksheet.Cells[currentRow, kvp.Key].Text;

@@ -20,6 +20,8 @@ namespace RapidImpex.Functionality
         {
             _amplaQueryService = amplaQueryService;
             _readWriteStrategy = readWriteStrategy;
+
+            _readWriteStrategy.AmplaQueryService = amplaQueryService;
         }
 
         public override void Execute()
@@ -33,25 +35,21 @@ namespace RapidImpex.Functionality
 
             var filePath = Path.Combine(Config.WorkingDirectory, Config.File);
 
-            //_readWriteStrategy.WriteToFile(filePath, "Data", reportingPointInfo, records); //Prasanta - Blocked this
             _readWriteStrategy.WriteToSheet(filePath, reportingPointInfo, records); //Prasanta -- added this line
-            //_readWriteStrategy.Write(Config.WorkingDirectory, records);
         }
     }
 
     class RapidImpexFileImportFunctionality : RapidImpexFunctionalityBase
     {
-        private readonly AmplaQueryService _amplaQueryService;
-
         private readonly IReportingPointDataReadWriteStrategy _readWriteStrategy;
 
         private readonly AmplaCommandService _amplaCommandService;
 
         public RapidImpexFileImportFunctionality(AmplaQueryService amplaQueryService, AmplaCommandService amplaCommandService, IReportingPointDataReadWriteStrategy readWriteStrategy)
         {
-            _amplaQueryService = amplaQueryService;
             _amplaCommandService = amplaCommandService;
             _readWriteStrategy = readWriteStrategy;
+            _readWriteStrategy.AmplaQueryService = amplaQueryService;
         }
 
         public override void Execute()

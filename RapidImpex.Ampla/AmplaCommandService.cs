@@ -173,22 +173,21 @@ namespace RapidImpex.Ampla
 
                 submitDataRecord.Fields = fieldValues.ToArray();
 
-                //foreach (Field fld in submitDataRecord.Fields)
-                //{
-                //    Console.WriteLine("Field Name-" + Convert.ToString(fld.Name));
-                //    Console.WriteLine("Value-" + Convert.ToString(fld.Value));
-                //}
+                // TODO: If batch <=0 then import all otherwise use the batch size
 
-                // Handle Record Values
-                submitDataRecords.Add(submitDataRecord);
-
-                ctr++;
-                if (ctr == _batchRecord)
+                if (_batchRecord > 0)
                 {
-                    SubmitDataRecord(submitDataRecords);
+                    // Handle Record Values
+                    submitDataRecords.Add(submitDataRecord);
 
-                    ctr = 0;
-                    submitDataRecords = new List<SubmitDataRecord>();
+                    ctr++;
+                    if (ctr == _batchRecord)
+                    {
+                        SubmitDataRecord(submitDataRecords);
+
+                        ctr = 0;
+                        submitDataRecords = new List<SubmitDataRecord>();
+                    }
                 }
             }
 
